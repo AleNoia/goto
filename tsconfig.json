@@ -21,10 +21,10 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": "./src",
     "paths": {
-      "components": ["components/index.ts"],
-      "theme": ["components/App/theme.ts"],
-      "utils/*": ["utils/*"],
-      "mocks/*": ["mocks/*"]
+      "components/*": ["components/*"],
+      "routes/*": ["routes/*"],
+      "screens/*": ["screens/*"],
+      "@/*": ["*"]
     }
   },
   "include": ["src", "./**/*.ts", "./**/*.tsx"],
