@@ -1,11 +1,11 @@
-import { Button } from '@/components/ui/button';
+import { Map, Filter } from '@/components';
 
 const Home = () => {
   return (
-    <>
-      <h1>Home Page</h1>
-      <Button variant="default">Clique aqui</Button>
-    </>
+    <div className="relative">
+      <Filter />
+      <Map />
+    </div>
   );
 };
 
