@@ -10,7 +10,6 @@ interface Location {
   lng: number;
   street: string;
   client: string;
-  distance: number;
   phone: number;
   email: string;
 }
@@ -30,7 +29,6 @@ const Map = ({
   mapType,
   clientSelected
 }: MapProps) => {
-  console.log('🚀 ~ clientSelected:', clientSelected);
   const { toast } = useToast();
 
   // Referência ao elemento HTML onde o mapa será renderizado
@@ -62,8 +60,7 @@ const Map = ({
         lng: -47.9292 // Coordenada de longitude inicial (Brasília)
       },
       zoom: 10, // Nível de zoom inicial
-      mapTypeControl: false, // Desativa os botões de alternância de tipo de mapa (satélite e mapa)
-      clickableIcons: false
+      mapTypeControl: false // Desativa os botões de alternância de tipo de mapa (satélite e mapa)
     };
   }, []);
 
@@ -178,12 +175,8 @@ const Map = ({
     }
   }, [map, clientSelected, mapOptions.center]);
 
-  return (
-    <div>
-      {/* Div onde o mapa será renderizado */}
-      <div ref={mapRef} className="w-screen h-screen" />
-    </div>
-  );
+  //Div onde o mapa será renderizado
+  return <div ref={mapRef} className="w-screen h-screen" />;
 };
 
 export default Map;

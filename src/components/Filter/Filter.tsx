@@ -6,7 +6,15 @@ import * as yup from 'yup';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { NavigationIcon, PhoneIcon, Search, LocateFixed } from 'lucide-react';
+import {
+  PhoneIcon,
+  Search,
+  LocateFixed,
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  Mail
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import usePhoneFormatter from '@/hooks/usePhoneFormatter';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -31,10 +39,49 @@ interface Location {
   lng: number;
   street: string;
   client: string;
-  distance: number;
   phone: number;
   email: string;
 }
+
+const clientsLocationsMocado = [
+  {
+    id: 1,
+    client: 'Client 1',
+    lat: -24.956,
+    lng: -53.455,
+    phone: 99984771567,
+    email: 'client@email.com',
+    street: 'Rua de Cascavel'
+  },
+  {
+    id: 2,
+    client: 'Client 2',
+    lat: -5.0811,
+    lng: -42.7743,
+    phone: 99984771567,
+    email: 'client@email.com',
+    street: 'Rua de Teresina'
+  },
+
+  {
+    id: 3,
+    client: 'Client 3',
+    lat: -15.781,
+    lng: -47.93,
+    phone: 40028922,
+    email: 'client@email.com',
+    street: 'Rua de Brasília'
+  },
+  {
+    id: 4,
+    client: 'Client 4',
+    lat: -25.4284,
+    lng: -49.2733,
+    phone: 99984771567,
+    email: 'client@email.com',
+    street: 'Rua de Curitiba'
+  }
+];
 
 interface FilterProps {
   clientsLocations: Location[];
@@ -58,6 +105,7 @@ const Filter = ({
   const { toast } = useToast();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [showFilter, setShowFilter] = useState(true);
 
   // Hook useForm do react-hook-form com a validação de yup
   const {
@@ -111,8 +159,11 @@ const Filter = ({
       const { lat, lng } = data.location;
 
       // Retorna a localização
-      setIsLoading(false);
-      return setUserLocation({ lat, lng });
+      setUserLocation({ lat, lng });
+      // Simula o fetch de clientes com as coordenadas obtidas
+      await fetchClientLocations(lat, lng);
+      setCloseClients(clientsLocationsMocado);
+      return setIsLoading(false);
     } catch (error) {
       toast({
         title: 'Erro ao obter localização',
@@ -152,8 +203,8 @@ const Filter = ({
         setUserLocation({ lat, lng, formatted_address });
 
         // Simula o fetch de clientes com as coordenadas obtidas
-        const clientLocations = await fetchClientLocations(lat, lng);
-        setCloseClients(clientLocations);
+        await fetchClientLocations(lat, lng);
+        setCloseClients(clientsLocationsMocado);
         setIsLoading(false);
       } else {
         toast({
@@ -193,128 +244,158 @@ const Filter = ({
     return Intl.NumberFormat('pt-BR').format(Number(result.toFixed(2)) || 0);
   };
 
-  return (
-    <Card className="w-full max-w-lg mx-auto absolute top-3 left-3 z-40">
-      <CardHeader className="flex flex-col justify-between items-center pb-3">
-        <CardTitle className="text-lg w-full">
-          {userLocation?.formatted_address ? userLocation.formatted_address : 'Filtro'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="flex flex-col mb-4">
-            <div className="flex space-x-2 mb-1 w-full">
-              <Input
-                placeholder="Pesquise por um endereço, CEP ou geolocalização"
-                {...register('filter')}
-              />
-              <Button type="submit">
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-            {errors.filter && (
-              <p className="text-red-500 text-sm w-full">{errors.filter.message}</p>
-            )}
-          </div>
-        </form>
+  if (!showFilter) {
+    return (
+      <div className="absolute top-3 left-3 z-50 ">
+        <Button onClick={() => setShowFilter(true)} variant="outline" className="py-5">
+          <ChevronRight className="h-5 w-5" />
+        </Button>
+      </div>
+    );
+  }
 
-        <div className="w-full flex gap-2 justify-between mb-4">
-          <Button className="w-min gap-2" onClick={() => getGoogleLocation()}>
-            <LocateFixed className="h-5 w-5" />
-            <span>Minha localização</span>
+  if (showFilter) {
+    return (
+      <Card className="w-full max-w-full top-0 left-0 mx-auto absolute z-40 sm:max-w-lg sm:top-3 sm:left-3">
+        <CardHeader className="flex flex-row gap-3 items-center pb-3">
+          <Button className="p-3" onClick={() => setShowFilter(false)} variant="outline">
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Menubar>
-            <MenubarMenu>
-              <MenubarTrigger onClick={() => handleToggleMapType('roadmap')}>Mapa</MenubarTrigger>
-              <MenubarContent>
-                <MenubarItem>
-                  <div
-                    className="items-top flex space-x-2"
-                    onClick={() => handleToggleMapType('terrain')}
-                  >
-                    <Checkbox id="terms1" checked={mapType === 'terrain'} />
-                    <div className="grid gap-1.5 leading-none">
-                      <label
-                        htmlFor="terms1"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Ativar relevo
-                      </label>
-                    </div>
-                  </div>
-                </MenubarItem>
-              </MenubarContent>
-            </MenubarMenu>
-            <MenubarMenu>
-              <MenubarTrigger onClick={() => handleToggleMapType('satellite')}>
-                Satélite
-              </MenubarTrigger>
-              <MenubarContent>
-                <MenubarItem>
-                  <div
-                    className="items-top flex space-x-2"
-                    onClick={() => handleToggleMapType('hybrid')}
-                  >
-                    <Checkbox id="terms1" checked={mapType === 'hybrid'} />
-                    <div className="grid gap-1.5 leading-none">
-                      <label
-                        htmlFor="terms1"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Ativar marcadores
-                      </label>
-                    </div>
-                  </div>
-                </MenubarItem>
-              </MenubarContent>
-            </MenubarMenu>
-          </Menubar>
-        </div>
+          <CardTitle className="text-lg">
+            {userLocation?.formatted_address ? userLocation.formatted_address : 'Filtro'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="flex flex-col mb-4">
+              <div className="flex space-x-2 mb-1 w-full">
+                <Input
+                  placeholder="Pesquise por um endereço, CEP ou geolocalização"
+                  {...register('filter')}
+                />
+                <Button type="submit">
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+              {errors.filter && (
+                <p className="text-red-500 text-sm w-full">{errors.filter.message}</p>
+              )}
+            </div>
+          </form>
 
-        <ul className="space-y-4 overflow-auto max-h-[50vh] scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent">
-          {isLoading &&
-            [1, 2, 3, 4].map((item) => {
-              return <Skeleton key={item} className="h-[158px] w-full" />;
-            })}
-          {clientsLocations.map((address) => (
-            <li
-              key={address.id}
-              className="border rounded-lg p-4 mr-1 cursor-pointer"
-              onClick={() => setClientSelected({ lat: address.lat, lng: address.lng })}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex flex-col">
-                  <p className="font-semibold">{address.client}</p>
-                  <p className="text-sm text-gray-600 font-semibold">{address.street}</p>
-                  <span className="text-sm text-gray-500">{address.email}</span>
-                  <span className="text-sm text-gray-500">{usePhoneFormatter(address.phone)}</span>
+          <div className="w-full flex gap-2 justify-between mb-4">
+            <Button className="w-min gap-2" onClick={() => getGoogleLocation()}>
+              <LocateFixed className="h-5 w-5" />
+              <span>Minha localização</span>
+            </Button>
+            <Menubar>
+              <MenubarMenu>
+                <MenubarTrigger onClick={() => handleToggleMapType('roadmap')}>Mapa</MenubarTrigger>
+                <MenubarContent>
+                  <MenubarItem>
+                    <div
+                      className="items-top flex space-x-2"
+                      onClick={() => handleToggleMapType('terrain')}
+                    >
+                      <Checkbox id="terms1" checked={mapType === 'terrain'} />
+                      <div className="grid gap-1.5 leading-none">
+                        <label
+                          htmlFor="terms1"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          Ativar relevo
+                        </label>
+                      </div>
+                    </div>
+                  </MenubarItem>
+                </MenubarContent>
+              </MenubarMenu>
+              <MenubarMenu>
+                <MenubarTrigger onClick={() => handleToggleMapType('satellite')}>
+                  Satélite
+                </MenubarTrigger>
+                <MenubarContent>
+                  <MenubarItem>
+                    <div
+                      className="items-top flex space-x-2"
+                      onClick={() => handleToggleMapType('hybrid')}
+                    >
+                      <Checkbox id="terms1" checked={mapType === 'hybrid'} />
+                      <div className="grid gap-1.5 leading-none">
+                        <label
+                          htmlFor="terms1"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          Ativar marcadores
+                        </label>
+                      </div>
+                    </div>
+                  </MenubarItem>
+                </MenubarContent>
+              </MenubarMenu>
+            </Menubar>
+          </div>
+
+          <ul className="space-y-4 overflow-auto max-h-[39vh] scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent sm:max-h-[50vh]">
+            {isLoading &&
+              [1, 2, 3, 4].map((item) => {
+                return <Skeleton key={item} className="h-[158px] w-full" />;
+              })}
+            {clientsLocations.map((address) => (
+              <li
+                key={address.id}
+                className="border rounded-lg p-4 mr-1 cursor-pointer"
+                onClick={() => setClientSelected({ lat: address.lat, lng: address.lng })}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex flex-col">
+                    <p className="font-semibold">{address.client}</p>
+                    <p className="text-sm text-gray-600 font-semibold">{address.street}</p>
+                    <span className="text-sm text-gray-500">{address.email}</span>
+                    <span className="text-sm text-gray-500">
+                      {usePhoneFormatter(address.phone)}
+                    </span>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    {userLocation &&
+                      calculateDistance(
+                        userLocation?.lat,
+                        userLocation?.lng,
+                        address.lat,
+                        address.lng
+                      )}{' '}
+                    km
+                  </span>
                 </div>
-                <span className="text-sm text-gray-500">
-                  {userLocation &&
-                    calculateDistance(
-                      userLocation?.lat,
-                      userLocation?.lng,
-                      address.lat,
-                      address.lng
-                    )}{' '}
-                  km de você
-                </span>
-              </div>
-              <div className="flex space-x-2 mt-2">
-                <Button size="sm" variant="outline">
-                  <NavigationIcon className="h-4 w-4 mr-2" />
-                  Enviar e-mail
-                </Button>
-                <Button size="sm" variant="outline">
-                  <PhoneIcon className="h-4 w-4 mr-2" />
-                  Ligar
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
-  );
+                <div className="flex justify-between mt-2">
+                  <div className="flex space-x-2">
+                    <a href={`mailto:${address.email}`}>
+                      <Button size="sm" variant="outline">
+                        <PhoneIcon className="h-4 w-4" />
+                      </Button>
+                    </a>
+                    <a href={`tel:${address.phone}`}>
+                      <Button size="sm" variant="outline">
+                        <Mail className="h-4 w-4 " />
+                      </Button>
+                    </a>
+                  </div>
+                  <a
+                    href={`https://www.google.com.br/maps?q=${address.lat},${address.lng}`}
+                    target="_blank"
+                  >
+                    <Button size="sm" variant="outline">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Como chegar aqui
+                    </Button>
+                  </a>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+    );
+  }
 };
 export default Filter;
