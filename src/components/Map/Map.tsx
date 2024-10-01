@@ -138,7 +138,7 @@ const Map = ({
   }, [map, clientSelected, mapOptions.center]);
 
   //Div onde o mapa será renderizado
-  return <div ref={mapRef} className="w-screen h-screen" />;
+  return <div ref={mapRef} className="w-screen h-screen overflow-hidden" />;
 };
 
 export default Map;

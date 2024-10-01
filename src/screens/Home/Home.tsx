@@ -6,7 +6,7 @@ const Home = () => {
   const [userLocation, setUserLocation] = useState<Adress | null>(null);
 
   // Estado para armazenar a localização do cliente selecionado
-  const [clientSelected, setClientSelected] = useState<Adress | null>(null);
+  const [clientSelected, setClientSelected] = useState<ClientLocation | null>(null);
 
   // Estado do mapa
   const [mapType, setMapType] = useState<MapType>('roadmap');
@@ -25,6 +25,7 @@ const Home = () => {
         userLocation={userLocation}
         setMapType={setMapType}
         mapType={mapType}
+        clientSelected={clientSelected}
         setClientSelected={setClientSelected}
         setCloseClients={setCloseClients}
         setIsLoading={setIsLoading}

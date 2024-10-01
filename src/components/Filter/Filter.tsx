@@ -1,21 +1,11 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  PhoneIcon,
-  Search,
-  LocateFixed,
-  ChevronLeft,
-  ChevronRight,
-  MapPin,
-  Mail
-} from 'lucide-react';
+import { Search, LocateFixed, ChevronLeft, ChevronRight, SearchX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import usePhoneFormatter from '@/hooks/usePhoneFormatter';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import fetchClientLocations from '@/hooks/useFetchClientLocations';
@@ -28,6 +18,7 @@ import {
   MenubarTrigger
 } from '@/components/ui/menubar';
 import { useState } from 'react';
+import ClientCard from 'components/ClientCard';
 
 // Schema de validação usando Yup para o campo de filtro
 const schema = yup.object({
@@ -38,7 +29,8 @@ interface FilterProps {
   clientsLocations: ClientLocation[];
   setUserLocation: (newValue: Adress) => void;
   setCloseClients: (newValue: ClientLocation[]) => void;
-  setClientSelected: (newValue: { lat: number; lng: number }) => void;
+  setClientSelected: (newValue: ClientLocation) => void;
+  clientSelected: ClientLocation | null;
   userLocation: Adress | null;
   setMapType: (newValue: MapType) => void;
   mapType: MapType;
@@ -53,6 +45,7 @@ const Filter = ({
   setMapType,
   mapType,
   setClientSelected,
+  clientSelected,
   setCloseClients,
   setIsLoading,
   isLoading
@@ -60,6 +53,7 @@ const Filter = ({
   const { VITE_GOOGLE_API } = import.meta.env; // A chave da API do Google
   const { toast } = useToast();
   const [showFilter, setShowFilter] = useState(true); // Estado para esconder/mostrar o filtro
+  const [showClients, setShowClients] = useState(true); // Estado para esconder/mostrar a listagem dos clientes
 
   // Hook useForm do react-hook-form com a validação de yup
   const {
@@ -228,54 +222,41 @@ const Filter = ({
               [1, 2, 3, 4].map((item) => {
                 return <Skeleton key={item} className="h-[158px] w-full" />;
               })}
-            {clientsLocations.map((address) => (
-              <li
-                key={address.id}
-                className="border rounded-lg p-4 mr-1 cursor-pointer"
-                onClick={() => setClientSelected({ lat: address.lat, lng: address.lng })}
+            {showClients &&
+              clientsLocations.map((address) => (
+                <ClientCard
+                  clientSelected={address}
+                  setShowClients={setShowClients}
+                  setClientSelected={setClientSelected}
+                  userLocation={userLocation}
+                />
+              ))}
+            {!showClients && clientSelected && (
+              <ClientCard
+                clientSelected={clientSelected}
+                setShowClients={setShowClients}
+                setClientSelected={setClientSelected}
+                userLocation={userLocation}
+              />
+            )}
+            {clientsLocations.length > 0 && (
+              <Button
+                onClick={() => setShowClients(!showClients)}
+                variant="outline"
+                className="w-full flex gap-2 relative"
               >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex flex-col">
-                    <p className="font-semibold">{address.client}</p>
-                    <p className="text-sm text-gray-600 font-semibold">{address.street}</p>
-                    <span className="text-sm text-gray-500">{address.email}</span>
-                    <span className="text-sm text-gray-500">
-                      {usePhoneFormatter(address.phone)}
-                    </span>
-                  </div>
-                  <span className="text-sm text-gray-500">
-                    {userLocation &&
-                      Intl.NumberFormat('pt-BR').format(
-                        Number(address.distance.toFixed(2)) || 0
-                      )}{' '}
-                    km
-                  </span>
-                </div>
-                <div className="flex justify-between mt-2">
-                  <div className="flex space-x-2">
-                    <a href={`tel:${address.phone}`}>
-                      <Button size="sm" variant="outline">
-                        <PhoneIcon className="h-4 w-4" />
-                      </Button>
-                    </a>
-                    <a href={`mailto:${address.email}`}>
-                      <Button size="sm" variant="outline">
-                        <Mail className="h-4 w-4 " />
-                      </Button>
-                    </a>
-                  </div>
-                  <a
-                    href={`https://www.google.com.br/maps?q=${address.lat},${address.lng}`}
-                    target="_blank"
-                  >
-                    <Button size="sm" variant="outline">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Como chegar aqui
-                    </Button>
-                  </a>
-                </div>
-              </li>
-            ))}
+                {showClients ? 'Esconder clientes' : 'Mostrar clientes'}
+                <span className="text-xs bg-gray-200 rounded-md font-semibold px-2 py-1 absolute right-1 top-1">
+                  {clientsLocations.length}
+                </span>
+              </Button>
+            )}
+            {clientsLocations.length === 0 && !isLoading && (
+              <div className="flex flex-col items-center">
+                <SearchX className="h-20 w-20 text-gray-400" />
+                <p className="font-medium text-gray-400">Nenhum cliente encontrado</p>
+              </div>
+            )}
           </ul>
         </CardContent>
       </Card>
