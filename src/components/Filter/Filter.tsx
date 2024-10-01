@@ -253,12 +253,12 @@ const Filter = ({
                 </div>
                 <div className="flex justify-between mt-2">
                   <div className="flex space-x-2">
-                    <a href={`mailto:${address.email}`}>
+                    <a href={`tel:${address.phone}`}>
                       <Button size="sm" variant="outline">
                         <PhoneIcon className="h-4 w-4" />
                       </Button>
                     </a>
-                    <a href={`tel:${address.phone}`}>
+                    <a href={`mailto:${address.email}`}>
                       <Button size="sm" variant="outline">
                         <Mail className="h-4 w-4 " />
                       </Button>
