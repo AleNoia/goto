@@ -39,7 +39,7 @@ interface Location {
 interface FilterProps {
   clientsLocations: Location[];
   setUserLocation: (newValue: { lat: number; lng: number; formatted_address?: string }) => void;
-  setCloseClients: (newValue: Location[]) => void; // Alterado para Location[]
+  setCloseClients: (newValue: Location[]) => void;
   setClientSelected: (newValue: { lat: number; lng: number }) => void;
   userLocation: { lat: number; lng: number; formatted_address?: string } | null;
   setMapType: (newValue: 'roadmap' | 'satellite' | 'terrain' | 'hybrid') => void;
@@ -172,8 +172,25 @@ const Filter = ({
     }
   };
 
+  // Alterna o tipo de mapa
   const handleToggleMapType = (type: 'roadmap' | 'satellite' | 'terrain' | 'hybrid') => {
     setMapType(type);
+  };
+
+  // Função para calcular a distância entre duas coordenadas (Haversine)
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+    const R = 6371; // Raio da Terra em km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const result = R * c;
+    return Intl.NumberFormat('pt-BR').format(Number(result.toFixed(2)) || 0);
   };
 
   return (
@@ -272,7 +289,16 @@ const Filter = ({
                   <span className="text-sm text-gray-500">{address.email}</span>
                   <span className="text-sm text-gray-500">{usePhoneFormatter(address.phone)}</span>
                 </div>
-                <span className="text-sm text-gray-500">{address.distance} km de você</span>
+                <span className="text-sm text-gray-500">
+                  {userLocation &&
+                    calculateDistance(
+                      userLocation?.lat,
+                      userLocation?.lng,
+                      address.lat,
+                      address.lng
+                    )}{' '}
+                  km de você
+                </span>
               </div>
               <div className="flex space-x-2 mt-2">
                 <Button size="sm" variant="outline">
