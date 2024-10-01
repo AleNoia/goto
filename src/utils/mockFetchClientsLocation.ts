@@ -273,6 +273,61 @@ const clientsLocationsMock = [
     street: 'Rua São Sebastião',
     city: 'Teresina',
     state: 'PI'
+  },
+  {
+    id: 26,
+    client: 'Client 26',
+    lat: -20.4697,
+    lng: -54.6201,
+    phone: 99984771587,
+    email: 'client26@email.com',
+    street: 'Rua 14 de Julho',
+    city: 'Campo Grande',
+    state: 'MS'
+  },
+  {
+    id: 27,
+    client: 'Client 27',
+    lat: -20.4486,
+    lng: -54.6285,
+    phone: 99984771588,
+    email: 'client27@email.com',
+    street: 'Avenida Afonso Pena',
+    city: 'Campo Grande',
+    state: 'MS'
+  },
+  {
+    id: 28,
+    client: 'Client 28',
+    lat: -20.469,
+    lng: -54.6348,
+    phone: 99984771589,
+    email: 'client28@email.com',
+    street: 'Rua Pedro Celestino',
+    city: 'Campo Grande',
+    state: 'MS'
+  },
+  {
+    id: 29,
+    client: 'Client 29',
+    lat: -20.4871,
+    lng: -54.6105,
+    phone: 99984771590,
+    email: 'client29@email.com',
+    street: 'Avenida Mato Grosso',
+    city: 'Campo Grande',
+    state: 'MS'
+  },
+  {
+    id: 30,
+    client: 'Client 30',
+    lat: -20.5028,
+    lng: -54.6183,
+    phone: 99984771591,
+    email: 'client30@email.com',
+    street: 'Rua Bahia',
+    city: 'Campo Grande',
+    state: 'MS'
   }
 ];
 
