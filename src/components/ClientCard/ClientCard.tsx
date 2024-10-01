@@ -15,6 +15,16 @@ const ClientCard = ({
   setClientSelected,
   userLocation
 }: FilterProps) => {
+  const getDirectionsUrl = () => {
+    if (userLocation) {
+      const origin = `${userLocation.lat},${userLocation.lng}`;
+      const destination = `${clientSelected.lat},${clientSelected.lng}`;
+      return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
+    }
+    // Caso não tenha a localização do usuário, ainda cria o link para o destino
+    return `https://www.google.com.br/maps?q=${clientSelected.lat},${clientSelected.lng}`;
+  };
+
   return (
     <div
       key={clientSelected.id}
@@ -50,10 +60,7 @@ const ClientCard = ({
             </Button>
           </a>
         </div>
-        <a
-          href={`https://www.google.com.br/maps?q=${clientSelected.lat},${clientSelected.lng}`}
-          target="_blank"
-        >
+        <a href={getDirectionsUrl()} target="_blank">
           <Button size="sm" variant="outline">
             <MapPin className="h-4 w-4 mr-2" />
             Como chegar aqui

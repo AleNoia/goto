@@ -74,15 +74,15 @@ module.exports = {
         },
         slideIn: {
           '0%': {
-            transform: 'translateX(-50px)',
+            transform: 'translateY(-50px)',
             opacity: '0'
           },
           '50%': {
-            transform: 'translateX(10px)',
+            transform: 'translateY(10px)',
             opacity: '1'
           },
           '100%': {
-            transform: 'translateX(0)',
+            transform: 'translateY(0)',
             opacity: '1'
           }
         },

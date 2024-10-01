@@ -53,7 +53,8 @@ const Map = ({
         lng: -47.9292 // Coordenada de longitude inicial (Brasília)
       },
       zoom: 10, // Nível de zoom inicial
-      mapTypeControl: false // Desativa os botões de alternância de tipo de mapa (satélite e mapa)
+      mapTypeControl: false, // Desativa os botões de alternância de tipo de mapa (satélite e mapa)
+      fullscreenControl: false // Desativa os botões de tela cheia
     };
   }, []);
 

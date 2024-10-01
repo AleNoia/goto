@@ -4,7 +4,7 @@ import * as yup from 'yup';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, LocateFixed, ChevronLeft, ChevronRight, SearchX } from 'lucide-react';
+import { Search, LocateFixed, ChevronUp, ChevronDown, SearchX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,11 +20,6 @@ import {
 import { useState } from 'react';
 import ClientCard from 'components/ClientCard';
 
-// Schema de validação usando Yup para o campo de filtro
-const schema = yup.object({
-  filter: yup.string().required('Campo obrigatório') // Valida que o campo de filtro é obrigatório
-});
-
 interface FilterProps {
   clientsLocations: ClientLocation[];
   setUserLocation: (newValue: Adress) => void;
@@ -37,6 +32,11 @@ interface FilterProps {
   setIsLoading: (value: boolean) => void;
   isLoading: boolean;
 }
+
+// Schema de validação usando Yup para o campo de filtro
+const schema = yup.object({
+  filter: yup.string().required('Campo obrigatório') // Valida que o campo de filtro é obrigatório
+});
 
 const Filter = ({
   clientsLocations,
@@ -121,11 +121,14 @@ const Filter = ({
 
   if (!showFilter) {
     return (
-      <div className="absolute top-3 left-3 z-50 ">
+      <Card className="absolute top-3 left-3 z-50 p-4 bg-white animate-[slideIn_400ms_ease-in-out] flex gap-4 items-center rounded-md">
         <Button onClick={() => setShowFilter(true)} variant="outline" className="py-5">
-          <ChevronRight className="h-5 w-5" />
+          <ChevronDown className="h-4 w-4" />
         </Button>
-      </div>
+        <p className="font-medium">
+          {clientSelected?.client || userLocation?.formatted_address || 'Filtro'}
+        </p>
+      </Card>
     );
   }
 
@@ -134,7 +137,7 @@ const Filter = ({
       <Card className="w-full max-w-full top-0 left-0 mx-auto absolute z-40 sm:max-w-lg sm:top-3 sm:left-3 animate-[slideIn_400ms_ease-in-out]">
         <CardHeader className="flex flex-row gap-3 items-center pb-3">
           <Button className="p-3" onClick={() => setShowFilter(false)} variant="outline">
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronUp className="h-4 w-4" />
           </Button>
           <CardTitle className="text-lg">
             {userLocation?.formatted_address ? userLocation.formatted_address : 'Filtro'}
