@@ -24,7 +24,7 @@ interface FilterProps {
   clientsLocations: ClientLocation[];
   setUserLocation: (newValue: Adress) => void;
   setCloseClients: (newValue: ClientLocation[]) => void;
-  setClientSelected: (newValue: ClientLocation) => void;
+  setClientSelected: (newValue: ClientLocation | null) => void;
   clientSelected: ClientLocation | null;
   userLocation: Adress | null;
   setMapType: (newValue: MapType) => void;
@@ -68,6 +68,7 @@ const Filter = ({
   // Função chamada ao submeter o formulário, que recebe os dados válidos do formulário
   const onSubmit = async (data: { filter: string }) => {
     try {
+      setClientSelected(null);
       setIsLoading(true);
       // Faz uma requisição à Geocoding API para converter o termo de busca em coordenadas
       const response = await fetch(
@@ -121,11 +122,11 @@ const Filter = ({
 
   if (!showFilter) {
     return (
-      <Card className="absolute top-3 left-3 z-50 p-4 bg-white animate-[slideIn_400ms_ease-in-out] flex gap-4 items-center rounded-md">
+      <Card className="absolute top-3 left-3 z-50 p-4 bg-white flex gap-3 items-center rounded-md animate-[slideIn_400ms_ease-in-out]">
         <Button onClick={() => setShowFilter(true)} variant="outline" className="py-5">
           <ChevronDown className="h-4 w-4" />
         </Button>
-        <p className="font-medium">
+        <p className="font-bold">
           {clientSelected?.client || userLocation?.formatted_address || 'Filtro'}
         </p>
       </Card>
@@ -166,6 +167,7 @@ const Filter = ({
               className="w-min gap-2"
               onClick={() => {
                 reset();
+                setShowClients(true);
                 getBrowsweLocation(setIsLoading, setUserLocation, setCloseClients);
               }}
             >
@@ -255,9 +257,9 @@ const Filter = ({
               </Button>
             )}
             {clientsLocations.length === 0 && !isLoading && (
-              <div className="flex flex-col items-center">
-                <SearchX className="h-20 w-20 text-gray-400" />
-                <p className="font-medium text-gray-400">Nenhum cliente encontrado</p>
+              <div className="flex flex-col mt-5 items-center">
+                <SearchX className="h-16 w-16 text-gray-400" />
+                <p className="font-medium text-gray-400 text-sm">Nenhum cliente encontrado</p>
               </div>
             )}
           </ul>

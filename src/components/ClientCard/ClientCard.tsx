@@ -26,7 +26,7 @@ const ClientCard = ({
   };
 
   return (
-    <div
+    <li
       key={clientSelected.id}
       className="border rounded-lg p-4 mr-1 cursor-pointer"
       onClick={() => {
@@ -67,7 +67,7 @@ const ClientCard = ({
           </Button>
         </a>
       </div>
-    </div>
+    </li>
   );
 };
 export default ClientCard;
