@@ -1,22 +1,43 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
+import { useToast } from '@/hooks/use-toast';
 
 // Array de localizações predefinidas com latitudes, longitudes e títulos para os marcadores
-const locations = [
-  { id: 1, lat: -24.956, lng: -53.455, city: 'Cascavel', street: '123 Main St', distance: 0.5 },
-  { id: 2, lat: -5.0811, lng: -42.7743, city: 'Teresina', street: '123 Main St', distance: 0.5 },
-  { id: 3, lat: -15.781, lng: -47.93, city: 'Brasília', street: '123 Main St', distance: 0.5 }
-];
 
-const Map = () => {
+interface Location {
+  id: number;
+  lat: number;
+  lng: number;
+  street: string;
+  client: string;
+  distance: number;
+  phone: number;
+  email: string;
+}
+
+interface MapProps {
+  clientsLocations: Location[];
+  setUserLocation: (newValue: { lat: number; lng: number; formatted_address?: string }) => void;
+  userLocation: { lat: number; lng: number } | null;
+  mapType: 'roadmap' | 'satellite' | 'terrain' | 'hybrid';
+  clientSelected: { lat: number; lng: number } | null;
+}
+
+const Map = ({
+  clientsLocations,
+  setUserLocation,
+  userLocation,
+  mapType,
+  clientSelected
+}: MapProps) => {
+  console.log('🚀 ~ clientSelected:', clientSelected);
+  const { toast } = useToast();
+
   // Referência ao elemento HTML onde o mapa será renderizado
   const mapRef = useRef<HTMLDivElement>(null);
 
-  // Estado para armazenar a localização atual do usuário
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-
-  // Estado para armazenar qualquer mensagem de erro (ex: se a geolocalização falhar)
-  const [error, setError] = useState<string | null>(null);
+  // Estado para armazenar a referência do marcador da localização do usuário
+  const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null);
 
   // Estado para armazenar a instância do mapa Google
   const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -40,7 +61,9 @@ const Map = () => {
         lat: -15.7801, // Coordenada de latitude inicial
         lng: -47.9292 // Coordenada de longitude inicial (Brasília)
       },
-      zoom: 10 // Nível de zoom inicial
+      zoom: 10, // Nível de zoom inicial
+      mapTypeControl: false, // Desativa os botões de alternância de tipo de mapa (satélite e mapa)
+      clickableIcons: false
     };
   }, []);
 
@@ -54,20 +77,35 @@ const Map = () => {
           (position) => {
             const { latitude, longitude } = position.coords;
             // Atualiza o estado com a localização do usuário
-            setLocation({ lat: latitude, lng: longitude });
+            setUserLocation({ lat: latitude, lng: longitude });
           },
           (err) => {
             // Em caso de erro, armazena a mensagem de erro no estado
-            setError(err.message);
+            if (err.message === 'User denied geolocation prompt') {
+              return toast({
+                title: 'Acesso de geolocalização negado',
+                description: 'Conceda acesso para identificarmos a geolocalização'
+              });
+            }
+            toast({
+              title: 'Ocorreu algum erro',
+              description: 'Entre me contato com o suporte'
+            });
+
+            console.error(err.message);
           }
         );
       } else {
         // Se o navegador não suporta geolocalização, define um erro
-        setError('Geolocation não é suportado neste browser');
+        toast({
+          title: 'Ocorreu algum erro',
+          description: 'Este navegador não suporta geolocalização'
+        });
       }
     };
 
     getCurrentLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Hook `useEffect` para carregar o Google Maps usando o Loader
@@ -82,43 +120,68 @@ const Map = () => {
       })
       .catch((e: Error) => {
         // Se houver erro ao carregar o Google Maps, define a mensagem de erro
-        setError(`Erro ao carregar o Google Maps: ${e}`);
+        toast({
+          title: 'Erro ao carregar o Google Maps',
+          description: `${e}`
+        });
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loader, mapOptions]);
 
-  // Hook `useEffect` que é acionado sempre que o mapa ou a localização do usuário muda
+  // Hook useEffect que é acionado sempre que o mapa ou a localização do usuário mudar
   useEffect(() => {
     // Se o mapa e a localização forem válidos, atualiza o mapa
-    if (map && location) {
-      // Centraliza o mapa na localização do usuário
-      map.setCenter(location);
-      // Adiciona um marcador na localização do usuário
-      new google.maps.Marker({
-        position: location,
-        map
+    if (map && userLocation) {
+      // Se já existe um marcador anterior, remove-o
+      if (userMarker) {
+        userMarker.setMap(null); // Remove o marcador atual do mapa
+      }
+
+      // Cria um novo marcador para a localização atualizada do usuário
+      const newUserMarker = new google.maps.Marker({
+        position: userLocation, // Posição do usuário
+        map, // Referência ao mapa
+        title: 'Sua localização' // Título do marcador
       });
 
-      // Adiciona marcadores para as localizações predefinidas
-      locations.forEach((loc) => {
+      // Centraliza o mapa na nova localização do usuário
+      map.setCenter(userLocation);
+
+      // Atualiza o estado com o novo marcador
+      setUserMarker(newUserMarker);
+
+      // Adiciona os marcadores para as localizações predefinidas
+      clientsLocations.forEach((loc) => {
         new google.maps.Marker({
           position: loc, // Posição da localização
-          map: map, // Referência ao mapa
-          title: loc.city, // Título do marcador (exibido quando o usuário passa o mouse)
+          map, // Referência ao mapa
+          title: loc.client, // Título do marcador
           icon: {
-            url: '/pin.svg', // Ícone personalizado para o marcador
-            scaledSize: new google.maps.Size(30, 30) // Tamanho do ícone
+            url: '/pin.svg', // Ícone personalizado para a localização
+            scaledSize: new google.maps.Size(40, 40) // Tamanho do ícone
           }
         });
       });
     }
-  }, [map, location]); // Este hook depende do mapa e da localização
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, userLocation, clientsLocations]); // Este hook depende do mapa, da localização do usuário e das localizações
+
+  useEffect(() => {
+    if (map) {
+      map.setMapTypeId(mapType); // Define o tipo de mapa
+    }
+  }, [map, mapType]);
+
+  useEffect(() => {
+    if (map) {
+      map.setCenter(clientSelected || mapOptions.center); // Define o centro do mapa de acordo com o cliente selecionado
+    }
+  }, [map, clientSelected, mapOptions.center]);
 
   return (
     <div>
-      {/* Exibe a mensagem de erro, se houver */}
-      {error && <p>Error: {error}</p>}
       {/* Div onde o mapa será renderizado */}
-      <div ref={mapRef} style={{ width: '100vw', height: '100vh' }} />
+      <div ref={mapRef} className="w-screen h-screen" />
     </div>
   );
 };

@@ -100,4 +100,33 @@
       'rlig' 1,
       'calt' 1;
   }
+
+  /* Para navegadores WebKit (Chrome, Safari) */
+  ul::-webkit-scrollbar {
+    width: 8px; /* Largura da barra de rolagem */
+  }
+
+  ul::-webkit-scrollbar-track {
+    background: transparent; /* Fundo da trilha da barra de rolagem */
+  }
+
+  ul::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2); /* Cor da parte que desliza */
+    border-radius: 4px; /* Bordas arredondadas da parte que desliza */
+  }
+
+  ul::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.4); /* Cor ao passar o mouse */
+  }
+
+  /* Para Firefox */
+  ul {
+    scrollbar-width: thin; /* Largura da barra de rolagem */
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* Cor da parte que desliza e da trilha */
+  }
+
+  /* Para Firefox ao passar o mouse */
+  ul:hover {
+    scrollbar-color: rgba(0, 0, 0, 0.4) transparent; /* Cor ao passar o mouse */
+  }
 }

@@ -1,17 +1,14 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import RouteProvider from '../RouteProvider';
+import { Toaster } from '@/components/ui/toaster';
 import './input.css';
 
 const App = () => {
-  const queryClient = new QueryClient();
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <RouteProvider />
-      </BrowserRouter>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <RouteProvider />
+      <Toaster />
+    </BrowserRouter>
   );
 };
 
