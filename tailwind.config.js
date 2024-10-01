@@ -72,6 +72,20 @@ module.exports = {
             height: 'var(--radix-accordion-content-height)'
           }
         },
+        slideIn: {
+          '0%': {
+            transform: 'translateX(-50px)',
+            opacity: '0'
+          },
+          '50%': {
+            transform: 'translateX(10px)',
+            opacity: '1'
+          },
+          '100%': {
+            transform: 'translateX(0)',
+            opacity: '1'
+          }
+        },
         'accordion-up': {
           from: {
             height: 'var(--radix-accordion-content-height)'

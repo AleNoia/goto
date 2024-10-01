@@ -1,28 +1,21 @@
 import { useState } from 'react';
 import { Map, Filter } from '@/components';
 
-interface Location {
-  id: number;
-  client: string;
-  lat: number;
-  lng: number;
-  phone: number;
-  email: string;
-  street: string;
-}
-
 const Home = () => {
   // Estado para armazenar a localização atual do usuário
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<Adress | null>(null);
 
   // Estado para armazenar a localização do cliente selecionado
-  const [clientSelected, setClientSelected] = useState<{ lat: number; lng: number } | null>(null);
+  const [clientSelected, setClientSelected] = useState<Adress | null>(null);
 
   // Estado do mapa
-  const [mapType, setMapType] = useState<'roadmap' | 'satellite' | 'terrain' | 'hybrid'>('roadmap');
+  const [mapType, setMapType] = useState<MapType>('roadmap');
 
   // Clientes próximos
-  const [closeClients, setCloseClients] = useState<Location[]>([]);
+  const [closeClients, setCloseClients] = useState<ClientLocation[]>([]);
+
+  // Estado para verificar se está tendo loading nas requisições
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <div className="relative">
@@ -34,6 +27,8 @@ const Home = () => {
         mapType={mapType}
         setClientSelected={setClientSelected}
         setCloseClients={setCloseClients}
+        setIsLoading={setIsLoading}
+        isLoading={isLoading}
       />
       <Map
         clientsLocations={closeClients}
@@ -41,6 +36,8 @@ const Home = () => {
         userLocation={userLocation}
         mapType={mapType}
         clientSelected={clientSelected}
+        setCloseClients={setCloseClients}
+        setIsLoading={setIsLoading}
       />
     </div>
   );

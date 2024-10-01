@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -19,6 +18,8 @@ import { useToast } from '@/hooks/use-toast';
 import usePhoneFormatter from '@/hooks/usePhoneFormatter';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
+import fetchClientLocations from '@/hooks/useFetchClientLocations';
+import getBrowsweLocation from '@/hooks/useGetBrowsweLocation';
 import {
   Menubar,
   MenubarContent,
@@ -33,64 +34,16 @@ const schema = yup.object({
   filter: yup.string().required('Campo obrigatório') // Valida que o campo de filtro é obrigatório
 });
 
-interface Location {
-  id: number;
-  lat: number;
-  lng: number;
-  street: string;
-  client: string;
-  phone: number;
-  email: string;
-}
-
-const clientsLocationsMocado = [
-  {
-    id: 1,
-    client: 'Client 1',
-    lat: -24.956,
-    lng: -53.455,
-    phone: 99984771567,
-    email: 'client@email.com',
-    street: 'Rua de Cascavel'
-  },
-  {
-    id: 2,
-    client: 'Client 2',
-    lat: -5.0811,
-    lng: -42.7743,
-    phone: 99984771567,
-    email: 'client@email.com',
-    street: 'Rua de Teresina'
-  },
-
-  {
-    id: 3,
-    client: 'Client 3',
-    lat: -15.781,
-    lng: -47.93,
-    phone: 40028922,
-    email: 'client@email.com',
-    street: 'Rua de Brasília'
-  },
-  {
-    id: 4,
-    client: 'Client 4',
-    lat: -25.4284,
-    lng: -49.2733,
-    phone: 99984771567,
-    email: 'client@email.com',
-    street: 'Rua de Curitiba'
-  }
-];
-
 interface FilterProps {
-  clientsLocations: Location[];
-  setUserLocation: (newValue: { lat: number; lng: number; formatted_address?: string }) => void;
-  setCloseClients: (newValue: Location[]) => void;
+  clientsLocations: ClientLocation[];
+  setUserLocation: (newValue: Adress) => void;
+  setCloseClients: (newValue: ClientLocation[]) => void;
   setClientSelected: (newValue: { lat: number; lng: number }) => void;
-  userLocation: { lat: number; lng: number; formatted_address?: string } | null;
-  setMapType: (newValue: 'roadmap' | 'satellite' | 'terrain' | 'hybrid') => void;
-  mapType: 'roadmap' | 'satellite' | 'terrain' | 'hybrid';
+  userLocation: Adress | null;
+  setMapType: (newValue: MapType) => void;
+  mapType: MapType;
+  setIsLoading: (value: boolean) => void;
+  isLoading: boolean;
 }
 
 const Filter = ({
@@ -100,79 +53,23 @@ const Filter = ({
   setMapType,
   mapType,
   setClientSelected,
-  setCloseClients
+  setCloseClients,
+  setIsLoading,
+  isLoading
 }: FilterProps) => {
+  const { VITE_GOOGLE_API } = import.meta.env; // A chave da API do Google
   const { toast } = useToast();
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [showFilter, setShowFilter] = useState(true);
+  const [showFilter, setShowFilter] = useState(true); // Estado para esconder/mostrar o filtro
 
   // Hook useForm do react-hook-form com a validação de yup
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors }
   } = useForm({
     resolver: yupResolver(schema) // Integração da validação do yup com react-hook-form
   });
-
-  // Função para obter coordenadas de um endereço ou CEP usando a Geocoding API
-  const { VITE_GOOGLE_API } = import.meta.env; // A chave da API do Google
-
-  // Função para simular fetch de localização de clientes
-  const fetchClientLocations = async (_lat: number, _lng: number) => {
-    // Simula o tempo de espera do fetch
-    return new Promise<Location[]>((resolve) => {
-      setIsLoading(true);
-      setTimeout(() => {
-        resolve(clientsLocations);
-        setIsLoading(false);
-      }, 2000); // 2 segundos de espera
-    });
-  };
-
-  // Função para obter a localização usando a Geolocation API do Google
-  async function getGoogleLocation() {
-    try {
-      setIsLoading(true);
-      const response = await fetch(
-        `https://www.googleapis.com/geolocation/v1/geolocate?key=${VITE_GOOGLE_API}`,
-        {
-          method: 'POST' // A Google API espera uma requisição POST
-        }
-      );
-
-      // Verifica se a resposta foi bem-sucedida
-      if (!response.ok) {
-        toast({
-          title: 'Erro ao obter localização',
-          description: 'Tente novamente ou entre me contato com o suporte'
-        });
-        setIsLoading(false);
-        throw new Error('Falha ao obter a localização');
-      }
-
-      // Converte a resposta em JSON
-      const data = await response.json();
-
-      // Extrai a localização (latitude e longitude)
-      const { lat, lng } = data.location;
-
-      // Retorna a localização
-      setUserLocation({ lat, lng });
-      // Simula o fetch de clientes com as coordenadas obtidas
-      await fetchClientLocations(lat, lng);
-      setCloseClients(clientsLocationsMocado);
-      return setIsLoading(false);
-    } catch (error) {
-      toast({
-        title: 'Erro ao obter localização',
-        description: 'Tente novamente ou entre me contato com o suporte'
-      });
-      console.error('Erro ao obter localização via Google Maps Geolocation API:', error);
-      setIsLoading(false);
-    }
-  }
 
   // Função chamada ao submeter o formulário, que recebe os dados válidos do formulário
   const onSubmit = async (data: { filter: string }) => {
@@ -203,8 +100,8 @@ const Filter = ({
         setUserLocation({ lat, lng, formatted_address });
 
         // Simula o fetch de clientes com as coordenadas obtidas
-        await fetchClientLocations(lat, lng);
-        setCloseClients(clientsLocationsMocado);
+        const response = await fetchClientLocations(lat, lng, setIsLoading);
+        setCloseClients(response);
         setIsLoading(false);
       } else {
         toast({
@@ -224,24 +121,8 @@ const Filter = ({
   };
 
   // Alterna o tipo de mapa
-  const handleToggleMapType = (type: 'roadmap' | 'satellite' | 'terrain' | 'hybrid') => {
+  const handleToggleMapType = (type: MapType) => {
     setMapType(type);
-  };
-
-  // Função para calcular a distância entre duas coordenadas (Haversine)
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
-    const R = 6371; // Raio da Terra em km
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLng = ((lng2 - lng1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const result = R * c;
-    return Intl.NumberFormat('pt-BR').format(Number(result.toFixed(2)) || 0);
   };
 
   if (!showFilter) {
@@ -256,7 +137,7 @@ const Filter = ({
 
   if (showFilter) {
     return (
-      <Card className="w-full max-w-full top-0 left-0 mx-auto absolute z-40 sm:max-w-lg sm:top-3 sm:left-3">
+      <Card className="w-full max-w-full top-0 left-0 mx-auto absolute z-40 sm:max-w-lg sm:top-3 sm:left-3 animate-[slideIn_400ms_ease-in-out]">
         <CardHeader className="flex flex-row gap-3 items-center pb-3">
           <Button className="p-3" onClick={() => setShowFilter(false)} variant="outline">
             <ChevronLeft className="h-4 w-4" />
@@ -284,7 +165,13 @@ const Filter = ({
           </form>
 
           <div className="w-full flex gap-2 justify-between mb-4">
-            <Button className="w-min gap-2" onClick={() => getGoogleLocation()}>
+            <Button
+              className="w-min gap-2"
+              onClick={() => {
+                reset();
+                getBrowsweLocation(setIsLoading, setUserLocation, setCloseClients);
+              }}
+            >
               <LocateFixed className="h-5 w-5" />
               <span>Minha localização</span>
             </Button>
@@ -358,11 +245,8 @@ const Filter = ({
                   </div>
                   <span className="text-sm text-gray-500">
                     {userLocation &&
-                      calculateDistance(
-                        userLocation?.lat,
-                        userLocation?.lng,
-                        address.lat,
-                        address.lng
+                      Intl.NumberFormat('pt-BR').format(
+                        Number(address.distance.toFixed(2)) || 0
                       )}{' '}
                     km
                   </span>

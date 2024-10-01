@@ -1,25 +1,16 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import { useToast } from '@/hooks/use-toast';
-
-// Array de localizações predefinidas com latitudes, longitudes e títulos para os marcadores
-
-interface Location {
-  id: number;
-  lat: number;
-  lng: number;
-  street: string;
-  client: string;
-  phone: number;
-  email: string;
-}
+import getBrowsweLocation from '@/hooks/useGetBrowsweLocation';
 
 interface MapProps {
-  clientsLocations: Location[];
-  setUserLocation: (newValue: { lat: number; lng: number; formatted_address?: string }) => void;
+  clientsLocations: ClientLocation[];
+  setUserLocation: (newValue: Adress) => void;
   userLocation: { lat: number; lng: number } | null;
-  mapType: 'roadmap' | 'satellite' | 'terrain' | 'hybrid';
+  mapType: MapType;
   clientSelected: { lat: number; lng: number } | null;
+  setCloseClients: (newValue: ClientLocation[]) => void;
+  setIsLoading: (value: boolean) => void;
 }
 
 const Map = ({
@@ -27,7 +18,9 @@ const Map = ({
   setUserLocation,
   userLocation,
   mapType,
-  clientSelected
+  clientSelected,
+  setCloseClients,
+  setIsLoading
 }: MapProps) => {
   const { toast } = useToast();
 
@@ -66,42 +59,8 @@ const Map = ({
 
   // Hook `useEffect` para obter a localização do usuário quando o componente é montado
   useEffect(() => {
-    const getCurrentLocation = () => {
-      // Verifica se o navegador suporta geolocalização
-      if (navigator.geolocation) {
-        // Obtém a posição atual do usuário
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            // Atualiza o estado com a localização do usuário
-            setUserLocation({ lat: latitude, lng: longitude });
-          },
-          (err) => {
-            // Em caso de erro, armazena a mensagem de erro no estado
-            if (err.message === 'User denied geolocation prompt') {
-              return toast({
-                title: 'Acesso de geolocalização negado',
-                description: 'Conceda acesso para identificarmos a geolocalização'
-              });
-            }
-            toast({
-              title: 'Ocorreu algum erro',
-              description: 'Entre me contato com o suporte'
-            });
+    getBrowsweLocation(setIsLoading, setUserLocation, setCloseClients);
 
-            console.error(err.message);
-          }
-        );
-      } else {
-        // Se o navegador não suporta geolocalização, define um erro
-        toast({
-          title: 'Ocorreu algum erro',
-          description: 'Este navegador não suporta geolocalização'
-        });
-      }
-    };
-
-    getCurrentLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -131,7 +90,7 @@ const Map = ({
     if (map && userLocation) {
       // Se já existe um marcador anterior, remove-o
       if (userMarker) {
-        userMarker.setMap(null); // Remove o marcador atual do mapa
+        userMarker.setMap(null); // Remove o marcador atual do usuário do mapa
       }
 
       // Cria um novo marcador para a localização atualizada do usuário
@@ -163,15 +122,18 @@ const Map = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, userLocation, clientsLocations]); // Este hook depende do mapa, da localização do usuário e das localizações
 
+  // Define o tipo de mapa
   useEffect(() => {
     if (map) {
-      map.setMapTypeId(mapType); // Define o tipo de mapa
+      map.setMapTypeId(mapType);
     }
   }, [map, mapType]);
 
+  // Define o centro do mapa de acordo com o cliente selecionado
   useEffect(() => {
     if (map) {
-      map.setCenter(clientSelected || mapOptions.center); // Define o centro do mapa de acordo com o cliente selecionado
+      map.setCenter(clientSelected || mapOptions.center);
+      map.setZoom(17);
     }
   }, [map, clientSelected, mapOptions.center]);
 
