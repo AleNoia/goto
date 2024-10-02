@@ -66,7 +66,7 @@ const Map = () => {
     }
   }, [map]);
 
-  // Callback para atualizar a localização do usuário
+  // Callback para atualizar a localização do usuário e os clientes próximos
   const updateUserMarker = useCallback(async () => {
     if (map && userLocation) {
       exitStreetOverView();
@@ -88,22 +88,25 @@ const Map = () => {
 
       // Adiciona os marcadores para as localizações predefinidas
       clientsLocations.forEach((loc: ClientLocation) => {
-        // A marker with a with a URL pointing to a PNG.
         const beachFlagImg = document.createElement('img');
         beachFlagImg.src = '/pin.svg';
+        beachFlagImg.style.width = '40px';
+        beachFlagImg.style.height = '40px';
 
-        // Define o tamanho desejado para o ícone do marcador
-        beachFlagImg.style.width = '40px'; // Defina a largura
-        beachFlagImg.style.height = '40px'; // Defina a altura
-
-        new google.maps.marker.AdvancedMarkerElement({
+        const clientMarker = new google.maps.marker.AdvancedMarkerElement({
           map, // Referência ao mapa
           position: { lat: loc.lat, lng: loc.lng }, // Posição da localização
           title: loc.client, // Título do marcador
           content: beachFlagImg // Ícone do marcador
         });
+
+        // Adiciona o listener para o evento de clique
+        clientMarker.addListener('click', () => {
+          localDispatch({ clientSelected: loc });
+        });
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, userLocation, exitStreetOverView, userMarker, clientsLocations]);
 
   // Define o tipo de mapa
