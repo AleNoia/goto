@@ -4,7 +4,7 @@ import * as yup from 'yup';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, LocateFixed, ChevronUp, ChevronDown, SearchX } from 'lucide-react';
+import { Search, LocateFixed, ChevronUp, ChevronDown, MapPinX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -123,7 +123,7 @@ const Filter = () => {
           variants={slideInAnimation}
           className="absolute top-3 left-3 z-50"
         >
-          <Card className="p-6 bg-white flex gap-3 items-center rounded-lg">
+          <Card className="p-6 bg-white flex gap-3 items-center rounded-xl">
             <Button onClick={() => setShowFilter(true)} variant="outline" className="p-3">
               <ChevronDown className="h-4 w-4" />
             </Button>
@@ -242,6 +242,7 @@ const Filter = () => {
               {showClients &&
                 clientsLocations.map((address: ClientLocation) => (
                   <ClientCard
+                    key={address.client}
                     clientSelected={address}
                     setShowClients={setShowClients}
                     userLocation={userLocation}
@@ -267,10 +268,10 @@ const Filter = () => {
                 </Button>
               )}
               {clientsLocations.length === 0 && !isLoading && (
-                <div className="flex flex-col mt-5 items-center">
-                  <SearchX className="h-16 w-16 text-gray-400" />
-                  <p className="font-medium text-gray-400 text-sm">Nenhum cliente encontrado</p>
-                </div>
+                <Card className="flex flex-col mt-5 items-center p-5 gap-4">
+                  <MapPinX className="h-16 w-16 text-gray-300" />
+                  <p className="text-gray-400 text-sm">Nenhum cliente encontrado</p>
+                </Card>
               )}
             </ul>
           </CardContent>

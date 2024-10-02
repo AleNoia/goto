@@ -6,42 +6,48 @@ import getBrowsweLocation from '@/hooks/useGetBrowsweLocation';
 
 const Map = () => {
   const localDispatch = useLocalDispatch();
-  const { toast } = useToast();
-  const { clientSelected, mapType, userLocation, clientsLocations } = useLocalState();
-
-  // Referência ao elemento HTML onde o mapa será renderizado
-  const mapRef = useRef<HTMLDivElement>(null);
-
-  // Estado para armazenar a referência do marcador da localização do usuário
-  const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null);
-
-  // Estado para armazenar a instância do mapa Google
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-
-  // Obtenção da chave da API do Google Maps das variáveis de ambiente
-  const { VITE_GOOGLE_API } = import.meta.env;
+  const { clientSelected, mapType, userLocation, clientsLocations } = useLocalState(); // Contexto com os dados
+  const { toast } = useToast(); // Notificação
+  const mapRef = useRef<HTMLDivElement>(null); // Referência ao elemento HTML onde o mapa será renderizado
+  const [userMarker, setUserMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(
+    null
+  ); // Estado para armazenar a referência do marcador da localização do usuário
+  const [map, setMap] = useState<google.maps.Map | null>(null); // Estado para armazenar a instância do mapa Google
+  const { VITE_GOOGLE_API } = import.meta.env; // Obtenção da chave da API do Google Maps das variáveis de ambiente
 
   // Uso do `useMemo` para criar o Loader da API do Google Maps. Isso evita recriação desnecessária
   const loader = useMemo(() => {
     return new Loader({
-      apiKey: VITE_GOOGLE_API, // Chave da API do Google
-      version: 'weekly', // Versão semanal da API
-      libraries: ['places'] // Carrega a biblioteca de "places"
+      apiKey: VITE_GOOGLE_API,
+      version: 'weekly',
+      libraries: ['places', 'marker']
     });
   }, [VITE_GOOGLE_API]);
 
   // Configurações do mapa, incluindo o centro e o nível de zoom inicial
-  const mapOptions = useMemo(() => {
-    return {
-      center: {
-        lat: -15.7801, // Coordenada de latitude inicial
-        lng: -47.9292 // Coordenada de longitude inicial (Brasília)
-      },
-      zoom: 10, // Nível de zoom inicial
-      mapTypeControl: false, // Desativa os botões de alternância de tipo de mapa (satélite e mapa)
-      fullscreenControl: false // Desativa os botões de tela cheia
-    };
-  }, []);
+  const mapOptions = useMemo(
+    () => ({
+      mapId: 'GOTO_MAP_ID',
+      center: { lat: -15.7801, lng: -47.9292 },
+      zoom: 10,
+      mapTypeControl: false,
+      fullscreenControl: false
+    }),
+    []
+  );
+
+  // Hook `useEffect` para carregar o Google Maps usando o Loader
+  useEffect(() => {
+    loader
+      .importLibrary('maps')
+      .then(({ Map }) => {
+        const newMap = new Map(mapRef.current!, mapOptions);
+        setMap(newMap);
+      })
+      .catch((e: Error) => {
+        toast({ title: 'Erro ao carregar o Google Maps', description: `${e}` });
+      });
+  }, [loader, mapOptions, toast]);
 
   // Hook `useEffect` para obter a localização do usuário quando o componente é montado
   useEffect(() => {
@@ -49,26 +55,7 @@ const Map = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Hook `useEffect` para carregar o Google Maps usando o Loader
-  useEffect(() => {
-    loader
-      .load() // Carrega a API do Google Maps
-      .then((google) => {
-        // Cria uma nova instância do mapa dentro do elemento `mapRef`
-        const newMap = new google.maps.Map(mapRef.current!, mapOptions);
-        // Armazena a instância do mapa no estado
-        setMap(newMap);
-      })
-      .catch((e: Error) => {
-        // Se houver erro ao carregar o Google Maps, define a mensagem de erro
-        toast({
-          title: 'Erro ao carregar o Google Maps',
-          description: `${e}`
-        });
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loader, mapOptions]);
-
+  // Callback para sair do modo streetoverview do google
   const exitStreetOverView = useCallback(() => {
     if (map) {
       // Verifica se o Street View está ativo e desativa
@@ -79,60 +66,71 @@ const Map = () => {
     }
   }, [map]);
 
-  // Hook useEffect que é acionado sempre que o mapa ou a localização do usuário mudar
-  useEffect(() => {
-    // Se o mapa e a localização forem válidos, atualiza o mapa
+  // Callback para atualizar a localização do usuário
+  const updateUserMarker = useCallback(async () => {
     if (map && userLocation) {
       exitStreetOverView();
-      // Se já existe um marcador anterior, remove-o
-      if (userMarker) {
-        userMarker.setMap(null); // Remove o marcador atual do usuário do mapa
-      }
+      if (userMarker) userMarker.map = null; // Se já existe um marcador anterior, remove-o
+      const { AdvancedMarkerElement } = (await google.maps.importLibrary(
+        'marker'
+      )) as google.maps.MarkerLibrary;
 
       // Cria um novo marcador para a localização atualizada do usuário
-      const newUserMarker = new google.maps.Marker({
-        position: userLocation, // Posição do usuário
-        map, // Referência ao mapa
-        title: 'Sua localização' // Título do marcador
+      const newUserMarker = new AdvancedMarkerElement({
+        position: userLocation,
+        map,
+        title: 'Sua localização'
       });
 
-      // Centraliza o mapa na nova localização do usuário
-      map.setCenter(userLocation);
-
-      // Atualiza o estado com o novo marcador
-      setUserMarker(newUserMarker);
+      map.setCenter(userLocation); // Centraliza o mapa na nova localização do usuário
+      map.setZoom(13); // Zoom no mapa
+      setUserMarker(newUserMarker); // Atualiza o estado com o novo marcador
 
       // Adiciona os marcadores para as localizações predefinidas
       clientsLocations.forEach((loc: ClientLocation) => {
-        new google.maps.Marker({
-          position: loc, // Posição da localização
+        // A marker with a with a URL pointing to a PNG.
+        const beachFlagImg = document.createElement('img');
+        beachFlagImg.src = '/pin.svg';
+
+        // Define o tamanho desejado para o ícone do marcador
+        beachFlagImg.style.width = '40px'; // Defina a largura
+        beachFlagImg.style.height = '40px'; // Defina a altura
+
+        new google.maps.marker.AdvancedMarkerElement({
           map, // Referência ao mapa
+          position: { lat: loc.lat, lng: loc.lng }, // Posição da localização
           title: loc.client, // Título do marcador
-          icon: {
-            url: '/pin.svg', // Ícone personalizado para a localização
-            scaledSize: new google.maps.Size(40, 40) // Tamanho do ícone
-          }
+          content: beachFlagImg // Ícone do marcador
         });
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, userLocation, clientsLocations]); // Este hook depende do mapa, da localização do usuário e das localizações
+  }, [map, userLocation, exitStreetOverView, userMarker, clientsLocations]);
 
   // Define o tipo de mapa
   useEffect(() => {
-    if (map) {
-      map.setMapTypeId(mapType);
-    }
+    if (map) map.setMapTypeId(mapType);
   }, [map, mapType]);
 
   // Define o centro do mapa de acordo com o cliente selecionado
-  useEffect(() => {
+  const updateMapForClient = useCallback(async () => {
     if (map) {
-      map.setCenter(clientSelected || mapOptions.center);
+      map.setCenter({ lat: clientSelected.lat, lng: clientSelected.lng });
       map.setZoom(17);
       exitStreetOverView();
     }
-  }, [map, clientSelected, mapOptions.center, exitStreetOverView]);
+  }, [map, clientSelected, exitStreetOverView]);
+
+  // useEffect que atualzia a localizacao do usuario
+  useEffect(() => {
+    if (map && userLocation) updateUserMarker();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, userLocation]);
+
+  // useEffect que atualzia a localizacao dos clientes próximos
+  useEffect(() => {
+    if (map && clientSelected) updateMapForClient();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, clientSelected]);
 
   //Div onde o mapa será renderizado
   return <div ref={mapRef} className="w-screen h-screen overflow-hidden" />;

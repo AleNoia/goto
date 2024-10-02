@@ -47,7 +47,6 @@ async function getCurrentLocation(localDispatch: (action: any) => void) {
             });
           });
         }
-        console.error(err.message);
         localDispatch({ isLoading: false }); // Certifique-se de parar o loading mesmo em caso de erro
       }
     );
