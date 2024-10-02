@@ -1,46 +1,22 @@
-import { useState } from 'react';
 import { Map, Filter } from '@/components';
+import { LocalStateProvider } from '@/hooks/Context';
 
-const Home = () => {
-  // Estado para armazenar a localização atual do usuário
-  const [userLocation, setUserLocation] = useState<Adress | null>(null);
-
-  // Estado para armazenar a localização do cliente selecionado
-  const [clientSelected, setClientSelected] = useState<ClientLocation | null>(null);
-
-  // Estado do mapa
-  const [mapType, setMapType] = useState<MapType>('roadmap');
-
-  // Clientes próximos
-  const [closeClients, setCloseClients] = useState<ClientLocation[]>([]);
-
-  // Estado para verificar se está tendo loading nas requisições
-  const [isLoading, setIsLoading] = useState(false);
-
+const Home: React.FC = () => {
   return (
-    <div className="relative">
-      <Filter
-        clientsLocations={closeClients}
-        setUserLocation={setUserLocation}
-        userLocation={userLocation}
-        setMapType={setMapType}
-        mapType={mapType}
-        clientSelected={clientSelected}
-        setClientSelected={setClientSelected}
-        setCloseClients={setCloseClients}
-        setIsLoading={setIsLoading}
-        isLoading={isLoading}
-      />
-      <Map
-        clientsLocations={closeClients}
-        setUserLocation={setUserLocation}
-        userLocation={userLocation}
-        mapType={mapType}
-        clientSelected={clientSelected}
-        setCloseClients={setCloseClients}
-        setIsLoading={setIsLoading}
-      />
-    </div>
+    <LocalStateProvider
+      initialValues={{
+        userLocation: null, // Estado para armazenar a localização atual do usuário
+        clientSelected: null, // Estado para armazenar a localização do cliente selecionado
+        mapType: 'roadmap', // Estado do mapa
+        clientsLocations: [], // Clientes próximos
+        isLoading: false // Estado para verificar se está tendo loading nas requisições
+      }}
+    >
+      <div className="relative">
+        <Filter />
+        <Map />
+      </div>
+    </LocalStateProvider>
   );
 };
 

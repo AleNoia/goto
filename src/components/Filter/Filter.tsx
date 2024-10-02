@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import fetchClientLocations from '@/hooks/useFetchClientLocations';
 import getBrowsweLocation from '@/hooks/useGetBrowsweLocation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocalDispatch, useLocalState } from '@/hooks/Context';
 import {
   Menubar,
   MenubarContent,
@@ -34,36 +35,14 @@ const slideInAnimation = {
   exit: { y: -50, opacity: 0, transition: { duration: 0.4, ease: 'easeInOut' } }
 };
 
-interface FilterProps {
-  clientsLocations: ClientLocation[];
-  setUserLocation: (newValue: Adress) => void;
-  setCloseClients: (newValue: ClientLocation[]) => void;
-  setClientSelected: (newValue: ClientLocation | null) => void;
-  clientSelected: ClientLocation | null;
-  userLocation: Adress | null;
-  setMapType: (newValue: MapType) => void;
-  mapType: MapType;
-  setIsLoading: (value: boolean) => void;
-  isLoading: boolean;
-}
-
 // Schema de validação usando Yup para o campo de filtro
 const schema = yup.object({
   filter: yup.string().required('Campo obrigatório') // Valida que o campo de filtro é obrigatório
 });
 
-const Filter = ({
-  clientsLocations,
-  setUserLocation,
-  userLocation,
-  setMapType,
-  mapType,
-  setClientSelected,
-  clientSelected,
-  setCloseClients,
-  setIsLoading,
-  isLoading
-}: FilterProps) => {
+const Filter = () => {
+  const localDispatch = useLocalDispatch();
+  const { clientSelected, mapType, userLocation, clientsLocations, isLoading } = useLocalState();
   const { VITE_GOOGLE_API } = import.meta.env; // A chave da API do Google
   const { toast } = useToast();
   const [showFilter, setShowFilter] = useState(true); // Estado para esconder/mostrar o filtro
@@ -82,8 +61,8 @@ const Filter = ({
   // Função chamada ao submeter o formulário, que recebe os dados válidos do formulário
   const onSubmit = async (data: { filter: string }) => {
     try {
-      setClientSelected(null);
-      setIsLoading(true);
+      localDispatch({ clientSelected: null });
+
       // Faz uma requisição à Geocoding API para converter o termo de busca em coordenadas
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(data.filter)}&key=${VITE_GOOGLE_API}`
@@ -94,7 +73,7 @@ const Filter = ({
           title: 'Erro ao obter localização',
           description: 'Tente novamente ou entre me contato com o suporte'
         });
-        setIsLoading(false);
+        localDispatch({ isLoading: false });
         throw new Error('Erro ao buscar a localização');
       }
 
@@ -106,18 +85,18 @@ const Filter = ({
         const formatted_address = result.results[0].formatted_address;
 
         // Atualiza a localização do usuário com a nova coordenada
-        setUserLocation({ lat, lng, formatted_address });
+        localDispatch({ userLocation: { lat, lng, formatted_address } });
 
         // Simula o fetch de clientes com as coordenadas obtidas
-        const response = await fetchClientLocations(lat, lng, setIsLoading);
-        setCloseClients(response);
-        setIsLoading(false);
+        const response = await fetchClientLocations(lat, lng, localDispatch);
+        localDispatch({ clientsLocations: response });
+        localDispatch({ isLoading: false });
       } else {
         toast({
           title: 'Nenhuma localização encontrada',
           description: 'Tente novamente ou entre me contato com o suporte'
         });
-        setIsLoading(false);
+        localDispatch({ isLoading: false });
       }
     } catch (error) {
       toast({
@@ -125,13 +104,13 @@ const Filter = ({
         description: 'Tente novamente ou entre me contato com o suporte'
       });
       console.error('Erro ao obter localização via Google Geocoding API:', error);
-      setIsLoading(false);
+      localDispatch({ isLoading: false });
     }
   };
 
   // Alterna o tipo de mapa
   const handleToggleMapType = (type: MapType) => {
-    setMapType(type);
+    localDispatch({ mapType: type });
   };
 
   if (!showFilter) {
@@ -144,8 +123,8 @@ const Filter = ({
           variants={slideInAnimation}
           className="absolute top-3 left-3 z-50"
         >
-          <Card className="p-4 bg-white flex gap-3 items-center rounded-md">
-            <Button onClick={() => setShowFilter(true)} variant="outline" className="py-5">
+          <Card className="p-6 bg-white flex gap-3 items-center rounded-lg">
+            <Button onClick={() => setShowFilter(true)} variant="outline" className="p-3">
               <ChevronDown className="h-4 w-4" />
             </Button>
             <p className="font-bold">
@@ -199,7 +178,7 @@ const Filter = ({
                 onClick={() => {
                   reset();
                   setShowClients(true);
-                  getBrowsweLocation(setIsLoading, setUserLocation, setCloseClients);
+                  getBrowsweLocation(localDispatch);
                 }}
               >
                 <LocateFixed className="h-5 w-5" />
@@ -261,11 +240,10 @@ const Filter = ({
                   return <Skeleton key={item} className="h-[158px] w-full" />;
                 })}
               {showClients &&
-                clientsLocations.map((address) => (
+                clientsLocations.map((address: ClientLocation) => (
                   <ClientCard
                     clientSelected={address}
                     setShowClients={setShowClients}
-                    setClientSelected={setClientSelected}
                     userLocation={userLocation}
                   />
                 ))}
@@ -273,7 +251,6 @@ const Filter = ({
                 <ClientCard
                   clientSelected={clientSelected}
                   setShowClients={setShowClients}
-                  setClientSelected={setClientSelected}
                   userLocation={userLocation}
                 />
               )}

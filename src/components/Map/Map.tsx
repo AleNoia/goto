@@ -1,28 +1,13 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import { useToast } from '@/hooks/use-toast';
+import { useLocalState, useLocalDispatch } from '@/hooks/Context';
 import getBrowsweLocation from '@/hooks/useGetBrowsweLocation';
 
-interface MapProps {
-  clientsLocations: ClientLocation[];
-  setUserLocation: (newValue: Adress) => void;
-  userLocation: { lat: number; lng: number } | null;
-  mapType: MapType;
-  clientSelected: { lat: number; lng: number } | null;
-  setCloseClients: (newValue: ClientLocation[]) => void;
-  setIsLoading: (value: boolean) => void;
-}
-
-const Map = ({
-  clientsLocations,
-  setUserLocation,
-  userLocation,
-  mapType,
-  clientSelected,
-  setCloseClients,
-  setIsLoading
-}: MapProps) => {
+const Map = () => {
+  const localDispatch = useLocalDispatch();
   const { toast } = useToast();
+  const { clientSelected, mapType, userLocation, clientsLocations } = useLocalState();
 
   // Referência ao elemento HTML onde o mapa será renderizado
   const mapRef = useRef<HTMLDivElement>(null);
@@ -60,8 +45,7 @@ const Map = ({
 
   // Hook `useEffect` para obter a localização do usuário quando o componente é montado
   useEffect(() => {
-    getBrowsweLocation(setIsLoading, setUserLocation, setCloseClients);
-
+    getBrowsweLocation(localDispatch);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -119,7 +103,7 @@ const Map = ({
       setUserMarker(newUserMarker);
 
       // Adiciona os marcadores para as localizações predefinidas
-      clientsLocations.forEach((loc) => {
+      clientsLocations.forEach((loc: ClientLocation) => {
         new google.maps.Marker({
           position: loc, // Posição da localização
           map, // Referência ao mapa

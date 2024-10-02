@@ -1,20 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { PhoneIcon, MapPin, Mail } from 'lucide-react';
 import usePhoneFormatter from '@/hooks/usePhoneFormatter';
+import { useLocalDispatch } from '@/hooks/Context';
 
 interface FilterProps {
   clientSelected: ClientLocation;
   setShowClients: (newValue: boolean) => void;
-  setClientSelected: (newValue: ClientLocation) => void;
   userLocation: Adress | null;
 }
 
-const ClientCard = ({
-  clientSelected,
-  setShowClients,
-  setClientSelected,
-  userLocation
-}: FilterProps) => {
+const ClientCard = ({ clientSelected, setShowClients, userLocation }: FilterProps) => {
+  const localDispatch = useLocalDispatch();
+
   const getDirectionsUrl = () => {
     if (userLocation) {
       const origin = `${userLocation.lat},${userLocation.lng}`;
@@ -31,7 +28,7 @@ const ClientCard = ({
       className="border rounded-lg p-4 mr-1 cursor-pointer"
       onClick={() => {
         setShowClients(false);
-        setClientSelected(clientSelected);
+        localDispatch({ clientSelected: clientSelected });
       }}
     >
       <div className="flex justify-between items-start mb-2">

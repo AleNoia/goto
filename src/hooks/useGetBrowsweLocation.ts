@@ -1,16 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { toast } from './use-toast';
 import fetchClientLocations from './useFetchClientLocations';
 import getGoogleLocation from './useFetchGetGoogleLocation';
 
-async function getCurrentLocation(
-  setIsLoading: (value: boolean) => void,
-  setUserLocation: (value: Adress) => void,
-  setCloseClients: (newValue: ClientLocation[]) => void
-) {
+async function getCurrentLocation(localDispatch: (action: any) => void) {
   // Verifica se o navegador suporta geolocalização
   if (navigator.geolocation) {
     // Inicia o loading
-    setIsLoading(true);
+    localDispatch({ isLoading: true });
 
     // Obtém a posição atual do usuário
     navigator.geolocation.getCurrentPosition(
@@ -18,12 +15,12 @@ async function getCurrentLocation(
         const { latitude, longitude } = position.coords;
 
         // Atualiza o estado com a localização do usuário
-        setUserLocation({ lat: latitude, lng: longitude });
+        localDispatch({ userLocation: { lat: latitude, lng: longitude } });
 
         // Simula o fetch de clientes com as coordenadas obtidas
         try {
-          const result = await fetchClientLocations(latitude, longitude, setIsLoading);
-          setCloseClients(result);
+          const result = await fetchClientLocations(latitude, longitude, localDispatch);
+          localDispatch({ clientsLocations: result });
         } catch (error) {
           toast({
             title: 'Erro ao obter clientes',
@@ -31,7 +28,7 @@ async function getCurrentLocation(
           });
           console.error(error);
         } finally {
-          setIsLoading(false);
+          localDispatch({ isLoading: false });
         }
       },
       (err) => {
@@ -43,7 +40,7 @@ async function getCurrentLocation(
           });
         } else {
           // Caso de erro, tentaremos utilizar a geolocalização da API do Google
-          getGoogleLocation(setIsLoading, setUserLocation, setCloseClients).catch(() => {
+          getGoogleLocation(localDispatch).catch(() => {
             toast({
               title: 'Erro na geolocalização',
               description: 'Não foi possível obter a localização usando a API do Google.'
@@ -51,7 +48,7 @@ async function getCurrentLocation(
           });
         }
         console.error(err.message);
-        setIsLoading(false); // Certifique-se de parar o loading mesmo em caso de erro
+        localDispatch({ isLoading: false }); // Certifique-se de parar o loading mesmo em caso de erro
       }
     );
   } else {
@@ -60,7 +57,7 @@ async function getCurrentLocation(
       title: 'Ocorreu algum erro',
       description: 'Este navegador não suporta geolocalização'
     });
-    setIsLoading(false); // Certifique-se de parar o loading
+    localDispatch({ isLoading: false }); // Certifique-se de parar o loading
   }
 }
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import calculateDistance from '@/hooks/useCalculateDistance';
 import clientsLocationsMock from '@/utils/mockFetchClientsLocation';
 
@@ -5,10 +6,10 @@ import clientsLocationsMock from '@/utils/mockFetchClientsLocation';
 const fetchClientLocations = async (
   userLat: number,
   userLng: number,
-  setIsLoading: (value: boolean) => void
+  localDispatch: (action: any) => void
 ): Promise<ClientLocation[]> => {
   return new Promise<ClientLocation[]>((resolve) => {
-    setIsLoading(true); // Inicia o loading
+    localDispatch({ isLoading: true }); // Inicia o loading
     setTimeout(() => {
       // Filtra e organiza os clientes em ordem crescente de distância
       const filteredClients = clientsLocationsMock
@@ -20,7 +21,7 @@ const fetchClientLocations = async (
         .sort((a, b) => a.distance - b.distance); // Organiza por distância (mais próximos primeiro)
 
       resolve(filteredClients); // Retorna os clientes filtrados e organizados
-      setIsLoading(false); // Finaliza o loading
+      localDispatch({ isLoading: false }); // Finaliza o loading
     }, 2000); // 2 segundos de espera
   });
 };
