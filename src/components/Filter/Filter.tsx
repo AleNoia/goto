@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import fetchClientLocations from '@/hooks/useFetchClientLocations';
 import getBrowsweLocation from '@/hooks/useGetBrowsweLocation';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Menubar,
   MenubarContent,
@@ -19,6 +20,19 @@ import {
 } from '@/components/ui/menubar';
 import { useState } from 'react';
 import ClientCard from 'components/ClientCard';
+
+const slideInAnimation = {
+  hidden: { y: -50, opacity: 0 },
+  visible: {
+    y: [10, 0],
+    opacity: 1,
+    transition: {
+      duration: 0.3,
+      ease: 'easeInOut'
+    }
+  },
+  exit: { y: -50, opacity: 0, transition: { duration: 0.4, ease: 'easeInOut' } }
+};
 
 interface FilterProps {
   clientsLocations: ClientLocation[];
@@ -122,149 +136,169 @@ const Filter = ({
 
   if (!showFilter) {
     return (
-      <Card className="absolute top-3 left-3 z-50 p-4 bg-white flex gap-3 items-center rounded-md animate-[slideIn_400ms_ease-in-out]">
-        <Button onClick={() => setShowFilter(true)} variant="outline" className="py-5">
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-        <p className="font-bold">
-          {clientSelected?.client || userLocation?.formatted_address || 'Filtro'}
-        </p>
-      </Card>
+      <AnimatePresence>
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          variants={slideInAnimation}
+          className="absolute top-3 left-3 z-50"
+        >
+          <Card className="p-4 bg-white flex gap-3 items-center rounded-md">
+            <Button onClick={() => setShowFilter(true)} variant="outline" className="py-5">
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+            <p className="font-bold">
+              {clientSelected?.client || userLocation?.formatted_address || 'Filtro'}
+            </p>
+          </Card>
+        </motion.div>
+      </AnimatePresence>
     );
   }
 
   if (showFilter) {
     return (
-      <Card className="w-full max-w-full top-0 left-0 mx-auto absolute z-40 sm:max-w-lg sm:top-3 sm:left-3 animate-[slideIn_400ms_ease-in-out]">
-        <CardHeader className="flex flex-row gap-3 items-center pb-3">
-          <Button className="p-3" onClick={() => setShowFilter(false)} variant="outline">
-            <ChevronUp className="h-4 w-4" />
-          </Button>
-          <CardTitle className="text-lg">
-            {userLocation?.formatted_address ? userLocation.formatted_address : 'Filtro'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="flex flex-col mb-4">
-              <div className="flex space-x-2 mb-1 w-full">
-                <Input
-                  placeholder="Pesquise por um endereço, CEP ou geolocalização"
-                  {...register('filter')}
-                />
-                <Button type="submit">
-                  <Search className="h-4 w-4" />
-                </Button>
-              </div>
-              {errors.filter && (
-                <p className="text-red-500 text-sm w-full">{errors.filter.message}</p>
-              )}
-            </div>
-          </form>
-
-          <div className="w-full flex gap-2 justify-between mb-4">
-            <Button
-              className="w-min gap-2"
-              onClick={() => {
-                reset();
-                setShowClients(true);
-                getBrowsweLocation(setIsLoading, setUserLocation, setCloseClients);
-              }}
-            >
-              <LocateFixed className="h-5 w-5" />
-              <span>Minha localização</span>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        variants={slideInAnimation}
+        className="absolute top-0 left-0 z-40 sm:top-3 sm:left-3 sm:max-w-lg w-full"
+      >
+        <Card className="max-w-full mx-auto">
+          <CardHeader className="flex flex-row gap-3 items-center pb-3">
+            <Button className="p-3" onClick={() => setShowFilter(false)} variant="outline">
+              <ChevronUp className="h-4 w-4" />
             </Button>
-            <Menubar>
-              <MenubarMenu>
-                <MenubarTrigger onClick={() => handleToggleMapType('roadmap')}>Mapa</MenubarTrigger>
-                <MenubarContent>
-                  <MenubarItem>
-                    <div
-                      className="items-top flex space-x-2"
-                      onClick={() => handleToggleMapType('terrain')}
-                    >
-                      <Checkbox id="terms1" checked={mapType === 'terrain'} />
-                      <div className="grid gap-1.5 leading-none">
-                        <label
-                          htmlFor="terms1"
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          Ativar relevo
-                        </label>
-                      </div>
-                    </div>
-                  </MenubarItem>
-                </MenubarContent>
-              </MenubarMenu>
-              <MenubarMenu>
-                <MenubarTrigger onClick={() => handleToggleMapType('satellite')}>
-                  Satélite
-                </MenubarTrigger>
-                <MenubarContent>
-                  <MenubarItem>
-                    <div
-                      className="items-top flex space-x-2"
-                      onClick={() => handleToggleMapType('hybrid')}
-                    >
-                      <Checkbox id="terms1" checked={mapType === 'hybrid'} />
-                      <div className="grid gap-1.5 leading-none">
-                        <label
-                          htmlFor="terms1"
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          Ativar marcadores
-                        </label>
-                      </div>
-                    </div>
-                  </MenubarItem>
-                </MenubarContent>
-              </MenubarMenu>
-            </Menubar>
-          </div>
+            <CardTitle className="text-lg">
+              {userLocation?.formatted_address ? userLocation.formatted_address : 'Filtro'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="flex flex-col mb-4">
+                <div className="flex space-x-2 mb-1 w-full">
+                  <Input
+                    placeholder="Pesquise por um endereço, CEP ou geolocalização"
+                    {...register('filter')}
+                  />
+                  <Button type="submit">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+                {errors.filter && (
+                  <p className="text-red-500 text-sm w-full">{errors.filter.message}</p>
+                )}
+              </div>
+            </form>
 
-          <ul className="space-y-4 overflow-auto max-h-[39vh] scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent sm:max-h-[50vh]">
-            {isLoading &&
-              [1, 2, 3, 4].map((item) => {
-                return <Skeleton key={item} className="h-[158px] w-full" />;
-              })}
-            {showClients &&
-              clientsLocations.map((address) => (
+            <div className="w-full flex gap-2 justify-between mb-4">
+              <Button
+                className="w-min gap-2"
+                onClick={() => {
+                  reset();
+                  setShowClients(true);
+                  getBrowsweLocation(setIsLoading, setUserLocation, setCloseClients);
+                }}
+              >
+                <LocateFixed className="h-5 w-5" />
+                <span>Minha localização</span>
+              </Button>
+              <Menubar>
+                <MenubarMenu>
+                  <MenubarTrigger onClick={() => handleToggleMapType('roadmap')}>
+                    Mapa
+                  </MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>
+                      <div
+                        className="items-top flex space-x-2"
+                        onClick={() => handleToggleMapType('terrain')}
+                      >
+                        <Checkbox id="terms1" checked={mapType === 'terrain'} />
+                        <div className="grid gap-1.5 leading-none">
+                          <label
+                            htmlFor="terms1"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Ativar relevo
+                          </label>
+                        </div>
+                      </div>
+                    </MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+                <MenubarMenu>
+                  <MenubarTrigger onClick={() => handleToggleMapType('satellite')}>
+                    Satélite
+                  </MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>
+                      <div
+                        className="items-top flex space-x-2"
+                        onClick={() => handleToggleMapType('hybrid')}
+                      >
+                        <Checkbox id="terms1" checked={mapType === 'hybrid'} />
+                        <div className="grid gap-1.5 leading-none">
+                          <label
+                            htmlFor="terms1"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Ativar marcadores
+                          </label>
+                        </div>
+                      </div>
+                    </MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+              </Menubar>
+            </div>
+
+            <ul className="space-y-4 overflow-auto max-h-[39vh] scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-transparent sm:max-h-[50vh]">
+              {isLoading &&
+                [1, 2, 3, 4].map((item) => {
+                  return <Skeleton key={item} className="h-[158px] w-full" />;
+                })}
+              {showClients &&
+                clientsLocations.map((address) => (
+                  <ClientCard
+                    clientSelected={address}
+                    setShowClients={setShowClients}
+                    setClientSelected={setClientSelected}
+                    userLocation={userLocation}
+                  />
+                ))}
+              {!showClients && clientSelected && (
                 <ClientCard
-                  clientSelected={address}
+                  clientSelected={clientSelected}
                   setShowClients={setShowClients}
                   setClientSelected={setClientSelected}
                   userLocation={userLocation}
                 />
-              ))}
-            {!showClients && clientSelected && (
-              <ClientCard
-                clientSelected={clientSelected}
-                setShowClients={setShowClients}
-                setClientSelected={setClientSelected}
-                userLocation={userLocation}
-              />
-            )}
-            {clientsLocations.length > 0 && (
-              <Button
-                onClick={() => setShowClients(!showClients)}
-                variant="outline"
-                className="w-full flex gap-2 relative"
-              >
-                {showClients ? 'Esconder clientes' : 'Mostrar clientes'}
-                <span className="text-xs bg-gray-200 rounded-md font-semibold px-2 py-1 absolute right-1 top-1">
-                  {clientsLocations.length}
-                </span>
-              </Button>
-            )}
-            {clientsLocations.length === 0 && !isLoading && (
-              <div className="flex flex-col mt-5 items-center">
-                <SearchX className="h-16 w-16 text-gray-400" />
-                <p className="font-medium text-gray-400 text-sm">Nenhum cliente encontrado</p>
-              </div>
-            )}
-          </ul>
-        </CardContent>
-      </Card>
+              )}
+              {clientsLocations.length > 0 && (
+                <Button
+                  onClick={() => setShowClients(!showClients)}
+                  variant="outline"
+                  className="w-full flex gap-2 relative"
+                >
+                  {showClients ? 'Esconder clientes' : 'Mostrar clientes'}
+                  <span className="text-xs bg-gray-200 rounded-md font-semibold px-2 py-1 absolute right-1 top-1">
+                    {clientsLocations.length}
+                  </span>
+                </Button>
+              )}
+              {clientsLocations.length === 0 && !isLoading && (
+                <div className="flex flex-col mt-5 items-center">
+                  <SearchX className="h-16 w-16 text-gray-400" />
+                  <p className="font-medium text-gray-400 text-sm">Nenhum cliente encontrado</p>
+                </div>
+              )}
+            </ul>
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 };
