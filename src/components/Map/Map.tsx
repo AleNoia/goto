@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import { useToast } from '@/hooks/use-toast';
 import getBrowsweLocation from '@/hooks/useGetBrowsweLocation';
@@ -85,10 +85,21 @@ const Map = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loader, mapOptions]);
 
+  const exitStreetOverView = useCallback(() => {
+    if (map) {
+      // Verifica se o Street View está ativo e desativa
+      const streetView = map.getStreetView();
+      if (streetView && streetView.getVisible()) {
+        streetView.setVisible(false); // Sai do Street View
+      }
+    }
+  }, [map]);
+
   // Hook useEffect que é acionado sempre que o mapa ou a localização do usuário mudar
   useEffect(() => {
     // Se o mapa e a localização forem válidos, atualiza o mapa
     if (map && userLocation) {
+      exitStreetOverView();
       // Se já existe um marcador anterior, remove-o
       if (userMarker) {
         userMarker.setMap(null); // Remove o marcador atual do usuário do mapa
@@ -135,8 +146,9 @@ const Map = ({
     if (map) {
       map.setCenter(clientSelected || mapOptions.center);
       map.setZoom(17);
+      exitStreetOverView();
     }
-  }, [map, clientSelected, mapOptions.center]);
+  }, [map, clientSelected, mapOptions.center, exitStreetOverView]);
 
   //Div onde o mapa será renderizado
   return <div ref={mapRef} className="w-screen h-screen overflow-hidden" />;
