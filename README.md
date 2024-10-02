@@ -1,48 +1,40 @@
-## Scripts
+# Goto
 
-Aqui estão os comandos principais que podem ser executados com `npm` ou `yarn`:
+**Goto** é um projeto que oferece funcionalidades de mapeamento, permitindo que os usuários visualizem locais e interajam com eles de maneira intuitiva. Este projeto é desenvolvido com React e utiliza várias bibliotecas para otimizar a experiência do usuário.
 
-- **`dev`**: Inicia o servidor de desenvolvimento usando o Vite.
-- **`build`**: Compila o projeto com TypeScript e gera o build de produção com o Vite.
-- **`preview`**: Visualiza o build gerado localmente.
-- **`lint`**: Executa o ESLint para garantir a qualidade do código, com um limite de `0` warnings.
-- **`lint:fix`**: Corrige automaticamente erros de linting no projeto.
-- **`format`**: Formata o código usando o Prettier para manter um estilo consistente.
+## Funcionalidades
+
+- **Visualização de Mapa**: Utiliza a API do Google Maps para mostrar locais selecionados.
+- **Localização do Usuário**: Permite que os usuários obtenham sua localização atual e vejam locais próximos.
+- **Filtros de Clientes**: Os usuários podem filtrar e selecionar clientes em sua área.
+- **Rota até o Local**: Oferece a opção de calcular a rota até um local específico.
 
 ## Dependências
 
-### Principais (Production)
+### Dependências Principais
 
-- **[@googlemaps/js-api-loader](https://www.npmjs.com/package/@googlemaps/js-api-loader)**: Carregador de API do Google Maps para integrar serviços de mapas.
-- **[@radix-ui/react-icons](https://www.radix-ui.com/docs/primitives/icons)** e **[@radix-ui/react-slot](https://www.radix-ui.com/docs/primitives/utilities/slot)**: Componentes acessíveis para construir interfaces modernas.
-- **[@tanstack/react-query](https://tanstack.com/query/v5)**: Gerenciamento de cache e estado de dados assíncronos em React.
-- **[class-variance-authority](https://www.npmjs.com/package/class-variance-authority)**: Gestão condicional de classes CSS.
-- **[clsx](https://www.npmjs.com/package/clsx)**: Concatenador condicional de classes CSS.
-- **[lucide-react](https://www.npmjs.com/package/lucide-react)**: Conjunto de ícones otimizados para React.
-- **[react](https://react.dev/)** e **[react-dom](https://react.dev/reference/react-dom)**: Biblioteca principal para construção de interfaces de usuário.
-- **[react-hook-form](https://react-hook-form.com/)**: Gerenciamento eficiente de formulários em React.
-- **[react-router-dom](https://reactrouter.com/)**: Biblioteca de roteamento para navegação entre páginas/componentes.
-- **[tailwind-merge](https://www.npmjs.com/package/tailwind-merge)**: Mesclador de classes Tailwind para evitar conflitos.
-- **[tailwindcss-animate](https://www.npmjs.com/package/tailwindcss-animate)**: Animações baseadas em utilitários do Tailwind CSS.
-- **[uuid](https://www.npmjs.com/package/uuid)**: Gerador de UUIDs únicos para identificação.
-- **[yup](https://www.npmjs.com/package/yup)**: Validação de esquemas e manipulação de dados.
+- `@googlemaps/js-api-loader`: Carrega a API do Google Maps de forma assíncrona, facilitando a integração do mapa no projeto.
+- `react`: Biblioteca principal para a construção da interface do usuário.
+- `react-dom`: Responsável por interagir com a DOM e renderizar componentes React.
+- `framer-motion`: Biblioteca para animações que permite criar transições suaves e interações dinâmicas.
+- `react-hook-form`: Facilita a manipulação de formulários, gerenciamento de estado e validações.
+- `yup`: Biblioteca para validação de esquemas, frequentemente usada em conjunto com `react-hook-form`.
+- `tailwindcss`: Framework CSS utilitário que permite estilização rápida e responsiva.
+- `constate`: Utilizada para gerenciar estado global de forma simples, facilitando a comunicação entre componentes.
 
-### Dev (Development)
+### Dependências de Desenvolvimento
 
-- **[@eslint/js](https://www.npmjs.com/package/@eslint/js)**: Configuração do ESLint para análise de código JavaScript.
-- **[@vitejs/plugin-react](https://www.npmjs.com/package/@vitejs/plugin-react)**: Integração de React com Vite.
-- **[autoprefixer](https://www.npmjs.com/package/autoprefixer)** e **[postcss](https://www.npmjs.com/package/postcss)**: Ferramentas para transformação de CSS.
-- **[typescript](https://www.typescriptlang.org/)**: Suporte ao TypeScript.
-- **[tailwindcss](https://tailwindcss.com/)**: Framework CSS utilitário.
-- **[husky](https://typicode.github.io/husky/)**: Automatização de ganchos de Git para garantir qualidade de código nos commits.
-- **[eslint](https://eslint.org/)**: Ferramenta de linting para garantir padrões de código consistentes.
-- **[prettier](https://prettier.io/)**: Formatação automática de código.
-- **[vite](https://vitejs.dev/)**: Bundler moderno e rápido para aplicações frontend.
+- `typescript`: Adiciona tipagem estática ao JavaScript, melhorando a robustez e a manutenção do código.
+- `vite`: Ferramenta de construção rápida para projetos front-end, otimizando o desenvolvimento.
+- `eslint`: Ferramenta para identificar e corrigir problemas de qualidade de código, garantindo consistência no estilo.
+- `prettier`: Formata o código automaticamente, promovendo a legibilidade e a padronização.
+- `husky`: Permite que scripts sejam executados em hooks do Git, como pré-commit, para garantir que o código siga as diretrizes estabelecidas.
 
-## Configuração do Projeto
+## Como Começar
 
-Antes de iniciar o desenvolvimento, certifique-se de instalar todas as dependências com:
+Para começar a usar o projeto, clone o repositório e execute os seguintes comandos:
 
 ```bash
 npm install
+npm run dev
 ```
