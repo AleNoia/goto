@@ -5,11 +5,10 @@ import { useLocalDispatch } from '@/hooks/Context';
 
 interface FilterProps {
   clientSelected: ClientLocation;
-  setShowClients: (newValue: boolean) => void;
   userLocation: Adress | null;
 }
 
-const ClientCard = ({ clientSelected, setShowClients, userLocation }: FilterProps) => {
+const ClientCard = ({ clientSelected, userLocation }: FilterProps) => {
   const localDispatch = useLocalDispatch();
 
   const getDirectionsUrl = () => {
@@ -27,8 +26,7 @@ const ClientCard = ({ clientSelected, setShowClients, userLocation }: FilterProp
       key={clientSelected.id}
       className="border rounded-lg p-4 mr-1 cursor-pointer"
       onClick={() => {
-        setShowClients(false);
-        localDispatch({ clientSelected: clientSelected });
+        localDispatch({ clientSelected: clientSelected, showClients: false });
       }}
     >
       <div className="flex justify-between items-start mb-2">

@@ -3,10 +3,13 @@ import { Loader } from '@googlemaps/js-api-loader';
 import { useToast } from '@/hooks/use-toast';
 import { useLocalState, useLocalDispatch } from '@/hooks/Context';
 import getBrowsweLocation from '@/hooks/useGetBrowsweLocation';
+import exitStreetOverView from '@/hooks/useExitStreetOverView';
+import setClientsLocation from '@/hooks/useSetClientsLocation';
 
 const Map = () => {
   const localDispatch = useLocalDispatch();
   const { clientSelected, mapType, userLocation, clientsLocations } = useLocalState(); // Contexto com os dados
+  console.log('🚀 ~ Map ~ clientsLocations:', clientsLocations);
   const { toast } = useToast(); // Notificação
   const mapRef = useRef<HTMLDivElement>(null); // Referência ao elemento HTML onde o mapa será renderizado
   const [userMarker, setUserMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(
@@ -55,21 +58,10 @@ const Map = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Callback para sair do modo streetoverview do google
-  const exitStreetOverView = useCallback(() => {
-    if (map) {
-      // Verifica se o Street View está ativo e desativa
-      const streetView = map.getStreetView();
-      if (streetView && streetView.getVisible()) {
-        streetView.setVisible(false); // Sai do Street View
-      }
-    }
-  }, [map]);
-
   // Callback para atualizar a localização do usuário e os clientes próximos
   const updateUserMarker = useCallback(async () => {
     if (map && userLocation) {
-      exitStreetOverView();
+      exitStreetOverView(map);
       if (userMarker) userMarker.map = null; // Se já existe um marcador anterior, remove-o
       const { AdvancedMarkerElement } = (await google.maps.importLibrary(
         'marker'
@@ -87,41 +79,27 @@ const Map = () => {
       setUserMarker(newUserMarker); // Atualiza o estado com o novo marcador
 
       // Adiciona os marcadores para as localizações predefinidas
+
       clientsLocations.forEach((loc: ClientLocation) => {
-        const beachFlagImg = document.createElement('img');
-        beachFlagImg.src = '/pin.svg';
-        beachFlagImg.style.width = '40px';
-        beachFlagImg.style.height = '40px';
-
-        const clientMarker = new google.maps.marker.AdvancedMarkerElement({
-          map, // Referência ao mapa
-          position: { lat: loc.lat, lng: loc.lng }, // Posição da localização
-          title: loc.client, // Título do marcador
-          content: beachFlagImg // Ícone do marcador
-        });
-
-        // Adiciona o listener para o evento de clique
-        clientMarker.addListener('click', () => {
-          localDispatch({ clientSelected: loc });
-        });
+        setClientsLocation(map, loc, localDispatch);
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, userLocation, exitStreetOverView, userMarker, clientsLocations]);
-
-  // Define o tipo de mapa
-  useEffect(() => {
-    if (map) map.setMapTypeId(mapType);
-  }, [map, mapType]);
+  }, [map, userLocation, userMarker, clientsLocations, localDispatch]);
 
   // Define o centro do mapa de acordo com o cliente selecionado
   const updateMapForClient = useCallback(async () => {
     if (map) {
       map.setCenter({ lat: clientSelected.lat, lng: clientSelected.lng });
       map.setZoom(17);
-      exitStreetOverView();
+      exitStreetOverView(map);
     }
-  }, [map, clientSelected, exitStreetOverView]);
+  }, [map, clientSelected]);
+
+  // useEffect que atualzia a localizacao do usuario
+  useEffect(() => {
+    if (map && clientsLocations) updateUserMarker();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, clientsLocations]);
 
   // useEffect que atualzia a localizacao do usuario
   useEffect(() => {
@@ -134,6 +112,11 @@ const Map = () => {
     if (map && clientSelected) updateMapForClient();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, clientSelected]);
+
+  // Define o tipo de mapa
+  useEffect(() => {
+    if (map) map.setMapTypeId(mapType);
+  }, [map, mapType]);
 
   //Div onde o mapa será renderizado
   return <div ref={mapRef} className="w-screen h-screen overflow-hidden" />;

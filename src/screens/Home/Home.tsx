@@ -9,7 +9,8 @@ const Home: React.FC = () => {
         clientSelected: null, // Estado para armazenar a localização do cliente selecionado
         mapType: 'roadmap', // Estado do mapa
         clientsLocations: [], // Clientes próximos
-        isLoading: false // Estado para verificar se está tendo loading nas requisições
+        isLoading: false, // Estado para verificar se está tendo loading nas requisições
+        showClients: true // Verifica se os clientes devem ser listados ou não
       }}
     >
       <div className="relative">

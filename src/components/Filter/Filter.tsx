@@ -42,11 +42,11 @@ const schema = yup.object({
 
 const Filter = () => {
   const localDispatch = useLocalDispatch();
-  const { clientSelected, mapType, userLocation, clientsLocations, isLoading } = useLocalState();
+  const { clientSelected, mapType, userLocation, clientsLocations, isLoading, showClients } =
+    useLocalState();
   const { VITE_GOOGLE_API } = import.meta.env; // A chave da API do Google
   const { toast } = useToast();
   const [showFilter, setShowFilter] = useState(true); // Estado para esconder/mostrar o filtro
-  const [showClients, setShowClients] = useState(true); // Estado para esconder/mostrar a listagem dos clientes
 
   // Hook useForm do react-hook-form com a validação de yup
   const {
@@ -177,7 +177,7 @@ const Filter = () => {
                 className="w-min gap-2"
                 onClick={() => {
                   reset();
-                  setShowClients(true);
+                  localDispatch({ showClients: true });
                   getBrowsweLocation(localDispatch);
                 }}
               >
@@ -244,20 +244,15 @@ const Filter = () => {
                   <ClientCard
                     key={address.client}
                     clientSelected={address}
-                    setShowClients={setShowClients}
                     userLocation={userLocation}
                   />
                 ))}
               {!showClients && clientSelected && (
-                <ClientCard
-                  clientSelected={clientSelected}
-                  setShowClients={setShowClients}
-                  userLocation={userLocation}
-                />
+                <ClientCard clientSelected={clientSelected} userLocation={userLocation} />
               )}
               {clientsLocations.length > 0 && (
                 <Button
-                  onClick={() => setShowClients(!showClients)}
+                  onClick={() => localDispatch({ showClients: !showClients })}
                   variant="outline"
                   className="w-full flex gap-2 relative"
                 >

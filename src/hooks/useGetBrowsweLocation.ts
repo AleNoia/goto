@@ -13,6 +13,7 @@ async function getCurrentLocation(localDispatch: (action: any) => void) {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        console.log('🚀 ~ position:', position);
 
         // Atualiza o estado com a localização do usuário
         localDispatch({ userLocation: { lat: latitude, lng: longitude } });
