@@ -20,7 +20,7 @@ const setClientsLocation = async (
 
     // Adiciona o listener para o evento de clique
     clientMarker.addListener('click', () => {
-      localDispatch({ clientSelected: loc, showClient: false });
+      localDispatch({ clientSelected: loc, showClients: false });
     });
   }
 };

@@ -9,7 +9,6 @@ import setClientsLocation from '@/hooks/useSetClientsLocation';
 const Map = () => {
   const localDispatch = useLocalDispatch();
   const { clientSelected, mapType, userLocation, clientsLocations } = useLocalState(); // Contexto com os dados
-  console.log('🚀 ~ Map ~ clientsLocations:', clientsLocations);
   const { toast } = useToast(); // Notificação
   const mapRef = useRef<HTMLDivElement>(null); // Referência ao elemento HTML onde o mapa será renderizado
   const [userMarker, setUserMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(
@@ -99,13 +98,7 @@ const Map = () => {
   useEffect(() => {
     if (map && clientsLocations) updateUserMarker();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, clientsLocations]);
-
-  // useEffect que atualzia a localizacao do usuario
-  useEffect(() => {
-    if (map && userLocation) updateUserMarker();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, userLocation]);
+  }, [map, clientsLocations, userLocation]);
 
   // useEffect que atualzia a localizacao dos clientes próximos
   useEffect(() => {
